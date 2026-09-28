@@ -49,3 +49,13 @@ Trong thời đại âm nhạc trở thành một phần không thể thiếu c�
 ### 🛡️ Quản trị (Admin)
 - Xem và xử lý danh sách bài đăng bị báo cáo (xóa / bỏ qua)
 - Quản lý tài khoản người dùng vi phạm (khóa tài khoản)
+
+## THÀNH VIÊN NHÓM
+
+| Thành viên | Họ và tên | Github |
+|:---:|---|---|
+| Thành viên 1 | Trịnh Minh Đạt | [mdattrnh](https://github.com/mdattrnh) |
+| Thành viên 2 | Trần Thị Ngọc Lan | [LanTranIT0001](https://github.com/LanTranIT0001) |
+| Thành viên 3 | Phạm Minh Thư | [PhamThuw20](https://github.com/PhamThuw20) |
+| Thành viên 4 | Nguyễn Ngọc Bích Trân | [Btran1201](https://github.com/Btran1201) |
+| Thành viên 5 | Nguyễn Thị Bảo Trân | [Baotran265](https://github.com/Baotran265) |
