@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Màn mở app (luôn nền tối, nối liền với màn chờ hệ thống): sóng âm nhảy → xếp thành chữ M → thu vào logo đĩa than → hiện tên app -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_splash_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0B0F19">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="136dp"
+            android:layout_height="136dp">
+
+            <ImageView
+                android:id="@+id/iv_splash_logo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0"
+                android:contentDescription="MelodyVerse"
+                android:elevation="10dp"
+                android:src="@drawable/ic_logo_melodyverse" />
+
+            <LinearLayout
+                android:id="@+id/layout_splash_bars"
+                android:layout_width="wrap_content"
+                android:layout_height="72dp"
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:orientation="horizontal" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tv_splash_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:alpha="0"
+            android:letterSpacing="-0.02"
+            android:text="MelodyVerse"
+            android:textColor="#FFFFFF"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_splash_tagline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:alpha="0"
+            android:letterSpacing="0.12"
+            android:text="Nghe · Chia sẻ · Kết nối"
+            android:textColor="#CBD5E1"
+            android:textSize="13sp" />
+    </LinearLayout>
+</FrameLayout>
