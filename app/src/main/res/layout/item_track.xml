@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Một hàng bài hát (Bảng xếp hạng ở Khám phá, Danh sách nhạc đã lưu ở Hồ sơ).
+     Đĩa than nhỏ xoay khi bài đang phát, đồng bộ với thanh sóng nhạc. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_music_card"
+    android:paddingStart="8dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="10dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="8dp">
+
+    <!-- Thứ hạng / số thứ tự -->
+    <TextView
+        android:id="@+id/tv_track_index"
+        android:layout_width="28dp"
+        android:layout_height="wrap_content"
+        android:text="01"
+        android:textColor="@color/colorTextMuted"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:gravity="center" />
+
+    <!-- Đĩa than: nhãn đĩa tô màu theo từng bài (DiscPalette) -->
+    <FrameLayout
+        android:id="@+id/frame_track_vinyl"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_vinyl_disc_card"
+        android:layout_marginStart="4dp">
+
+        <View
+            android:id="@+id/view_track_vinyl_label"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_avatar_circle" />
+
+        <View
+            android:layout_width="5dp"
+            android:layout_height="5dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_vinyl_spindle" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp">
+
+        <TextView
+            android:id="@+id/tv_track_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Không Thể Say"
+            android:textColor="@color/colorTextPrimary"
+            android:textStyle="bold"
+            android:textSize="15sp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/tv_track_artist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HIEUTHUHAI"
+            android:textColor="@color/colorTextSecondary"
+            android:textSize="13sp"
+            android:layout_marginTop="2dp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+    </LinearLayout>
+
+    <!-- Sóng nhạc: chỉ hiện khi bài đang phát -->
+    <LinearLayout
+        android:id="@+id/layout_track_eq"
+        android:layout_width="wrap_content"
+        android:layout_height="18dp"
+        android:orientation="horizontal"
+        android:gravity="bottom"
+        android:visibility="gone"
+        android:layout_marginEnd="10dp">
+
+        <View
+            android:id="@+id/track_eq_1"
+            android:layout_width="3dp"
+            android:layout_height="8dp"
+            android:background="@drawable/bg_eq_bar"
+            android:layout_marginEnd="2.5dp" />
+
+        <View
+            android:id="@+id/track_eq_2"
+            android:layout_width="3dp"
+            android:layout_height="15dp"
+            android:background="@drawable/bg_eq_bar"
+            android:layout_marginEnd="2.5dp" />
+
+        <View
+            android:id="@+id/track_eq_3"
+            android:layout_width="3dp"
+            android:layout_height="10dp"
+            android:background="@drawable/bg_eq_bar" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/iv_track_play"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:src="@drawable/ic_play"
+        android:background="@drawable/bg_play_button"
+        android:padding="10dp"
+        android:contentDescription="Phát"
+        app:tint="@color/white" />
+
+</LinearLayout>
