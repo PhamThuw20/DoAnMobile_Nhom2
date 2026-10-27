@@ -20,35 +20,38 @@ Trong thời đại âm nhạc trở thành một phần không thể thiếu c�
 ## TÍNH NĂNG CHÍNH
 
 ### 🔐 Xác thực
-- Đăng nhập bằng tài khoản Google (Firebase Auth)
-- Tạo hồ sơ lần đầu: username, avatar, bio
+- Đăng ký / đăng nhập bằng username hoặc email, hoặc bằng tài khoản Google (Firebase Auth); quên mật khẩu qua email
+- Tạo hồ sơ khi đăng ký: username, họ tên, avatar; bio chỉnh sửa trong trang cá nhân
 - Phân quyền tự động: User / Admin
 
 ### 🏠 Bảng tin & Khám phá
-- Xem bảng tin từ những người đang theo dõi, sắp xếp theo thời gian mới nhất
-- Lọc bài đăng theo 6 thể loại: Pop, Rock, EDM, Rap, Acoustic, Ballad
-- Chế độ xem ngoại tuyến (Offline mode) khi mất kết nối mạng
+- Xem bảng tin các bài chia sẻ công khai, sắp xếp theo thời gian mới nhất
+- Lọc bài đăng theo thể loại (V-Pop, Rap / Hip-Hop, Indie & Chill) và tìm kiếm tiếng Việt không dấu theo tên bài, nghệ sĩ, hashtag
+- Chế độ ngoại tuyến (Offline mode) khi mất kết nối mạng: xem dữ liệu đã lưu, thao tác được lưu chờ và tự đồng bộ khi có mạng
+- Khám phá: bảng xếp hạng Top 3 theo lượt tim và vòng xoay đĩa than
 
 ### 🎶 Đăng bài chia sẻ nhạc
-- **Cách 1 — Tìm qua iTunes API:** nhập tên bài hát, hệ thống tự động điền tên bài, nghệ sĩ, ảnh bìa và link nhạc
-- **Cách 2 — Tự upload:** nhập tay thông tin bài hát, chọn thể loại, tải file MP3 từ máy
-- Tùy chọn đính kèm link YouTube để xem MV
+- **Cách 1 — Bài hát mẫu:** chọn bài hát có sẵn trong ứng dụng (nghe được cả khi ngoại tuyến)
+- **Cách 2 — Dán link nhạc:** dán link nhạc trực tuyến (hỗ trợ link Audius), nhập tên bài, nghệ sĩ, chọn thể loại, hashtag
+- Chế độ Công khai / Riêng tư; sửa / xóa bài của mình
 
 ### ▶️ Nghe nhạc trực tiếp trong ứng dụng
 - Phát nhạc nền bằng Service + MediaPlayer, không bị ngắt khi chuyển màn hình
-- Mini Player hiển thị cố định, mở rộng thành Full Player với ảnh bìa, thanh tiến trình, điều khiển Next/Previous
+- Mini Player hiển thị cố định, mở rộng thành màn Đang phát (đĩa than xoay, sóng âm, tua, Next/Previous, Lặp lại / Ngẫu nhiên)
 - Tự động chuyển bài (Auto-Next) theo danh sách phát từ bảng tin
-- Xem MV bằng Implicit Intent (mở ứng dụng YouTube)
+- Lưu bản nhạc yêu t
 
 ### 💬 Tương tác xã hội
 - Thích (Like) và bình luận (Comment) bài đăng, cập nhật theo thời gian thực
 - Theo dõi (Follow/Unfollow) người dùng khác, xem hồ sơ và danh sách follower/following
-- Tìm kiếm bài hát hoặc người dùng
+- Tìm kiếm bài hát, nghệ sĩ hoặc hashtag
+- Nhận thông báo khi có người thích, bình luận hoặc theo dõi mình
 - Báo cáo bài đăng vi phạm
 
 ### 🛡️ Quản trị (Admin)
-- Xem và xử lý danh sách bài đăng bị báo cáo (xóa / bỏ qua)
-- Quản lý tài khoản người dùng vi phạm (khóa tài khoản)
+- Xem thống kê, ẩn / hiện lại hoặc xóa bài đăng
+- Xem và xử lý danh sách bài đăng bị báo cáo (ẩn / xóa / bỏ qua)
+- Quản lý tài khoản người dùng vi phạm (khóa / mở khóa tài khoản)
 
 ## CÔNG NGHỆ SỬ DỤNG
 
@@ -56,25 +59,23 @@ Trong thời đại âm nhạc trở thành một phần không thể thiếu c�
 |---|---|
 | Java | Ngôn ngữ lập trình chính, áp dụng lập trình hướng đối tượng (OOP) |
 | Android Studio | IDE phát triển, debug và chạy thử ứng dụng |
-| Firebase Authentication | Đăng nhập bằng Google OAuth, quản lý phiên đăng nhập |
+| Firebase Authentication | Đăng nhập bằng email / mật khẩu và Google (Credential Manager), quản lý phiên đăng nhập, gửi email đặt lại mật khẩu |
 | Firebase Firestore | CSDL NoSQL trên cloud, tổ chức theo collection và document, liên kết dữ liệu bằng ID |
-| Firebase Storage | Lưu file nhạc MP3 người dùng tải lên (giới hạn < 5MB) |
-| Room (SQLite) | CSDL local cho chế độ ngoại tuyến, cache bài đăng và bình luận |
+| Room (SQLite) | CSDL local cho chế độ ngoại tuyến, cache bài đăng, bình luận và hàng chờ thao tác chờ đồng bộ |
 | Service + MediaPlayer | Phát nhạc nền trong ứng dụng, duy trì khi chuyển màn hình |
-| Retrofit & Gson | Gọi iTunes API để tìm kiếm và lấy dữ liệu âm nhạc tự động |
+| Audius API (HttpURLConnection) | Lấy thông tin bài hát và link phát từ link nhạc Audius |
 | Drawables (res/drawable) | Ảnh tĩnh nhúng sẵn cho avatar |
-| Adaptive layouts (layout-land) | Giao diện responsive khi xoay ngang màn hình |
 
-**Kiến trúc:** MVVM + Repository + Service. Ứng dụng xây dựng hoàn toàn bằng Activity (không dùng Fragment).
+**Kiến trúc:** Activity (kế thừa BaseActivity) + DatabaseHelper (SQLite) + SyncManager (đồng bộ với Firestore) + Service. Ứng dụng xây dựng hoàn toàn bằng Activity (không dùng Fragment).
 
 ## YÊU CẦU CHỨC NĂNG THEO VAI TRÒ
 
 ### Xác thực & phân quyền
-- Đăng nhập bằng tài khoản Google (Firebase Auth + Google Sign-In)
-- Đăng ký hồ sơ lần đầu: nhập username, chọn avatar (từ danh sách ảnh tĩnh), bio
-- Tự động phân quyền User (mặc định) hoặc Admin dựa vào field `role` trong Firestore
+- Đăng ký / đăng nhập bằng username hoặc email, hoặc bằng tài khoản Google (Firebase Auth + Google Sign-In); quên mật khẩu qua email
+- Đăng ký hồ sơ: nhập username, họ tên, email, mật khẩu, chọn avatar (từ danh sách ảnh tĩnh); tài khoản Google được tự tạo hồ sơ ở lần đăng nhập đầu tiên
+- Tự động phân quyền User (mặc định) hoặc Admin (tài khoản quản trị riêng, có document admins/{uid} trên Firestore)
 - Duy trì phiên đăng nhập bằng Firebase Authentication session
-- Đăng xuất qua Navigation Drawer
+- Đăng xuất ở trang Hồ sơ
 
 ### User (người dùng thường)
 
@@ -83,10 +84,9 @@ Trong thời đại âm nhạc trở thành một phần không thể thiếu c�
 - Lọc bài đăng theo thể loại
 
 **Đăng bài chia sẻ nhạc**
-- Lựa chọn 1 (iTunes API): nhập tên bài hát, app tự điền tên bài, nghệ sĩ, ảnh bìa, link nhạc 30s; thể loại được ánh xạ về 6 thể loại chuẩn của app
-- Lựa chọn 2 (tự upload): nhập tay tên bài, nghệ sĩ, chọn thể loại, chọn file MP3 từ máy (< 5MB)
-- Tùy chọn dán link YouTube; viết caption rồi đăng bài
-
+- Lựa chọn 1 (bài hát mẫu): chọn bài hát có sẵn trong ứng dụng
+- Lựa chọn 2 (dán link nhạc): dán link nhạc trực tuyến (hỗ trợ link Audius, app tự lấy tên bài, nghệ sĩ và link phát), nhập tên bài, nghệ sĩ, chọn thể loại (V-Pop, Rap / Hip-Hop, R&B, Ballad, Indie / Acoustic, EDM), thêm hashtag
+- Viết caption, chọn chế độ Công khai / Riêng tư rồi đăng bài; có thể sửa / xóa bài của mình
 **Nghe nhạc & tương tác**
 - Nhấn ▶️ để phát nhạc, Mini Player hiển thị dưới cùng, nhấn vào để mở Full Player (ảnh bìa, SeekBar, Next/Previous)
 - Tự động chuyển bài khi hết bài
@@ -96,99 +96,63 @@ Trong thời đại âm nhạc trở thành một phần không thể thiếu c�
 - Lưu ý: nhạc chỉ phát khi ứng dụng đang mở, tự dừng khi người dùng thoát hẳn ứng dụng
 
 **Tìm kiếm & theo dõi**
-- Tìm bài hát theo tên hoặc tìm người dùng
+- Tìm bài hát theo tên, nghệ sĩ hoặc hashtag (không phân biệt dấu); xem Bảng xếp hạng và Vòng xoay đĩa than ở tab Khám phá
 - Xem trang cá nhân người dùng khác, Follow/Unfollow
 - Xem danh sách đang theo dõi (following) và người theo dõi (followers)
 
 **Hồ sơ cá nhân**
-- Xem và chỉnh sửa hồ sơ, xem lại các bài đăng của mình
+- Xem và chỉnh sửa hồ sơ, xem lại các bài đã chia sẻ, bài đã thích và nhạc đã lưu
+- Nhận thông báo (thích, bình luận, theo dõi) ở tab Thông báo
 
 **Chế độ ngoại tuyến**
 - Tự phát hiện mất kết nối WiFi/4G
-- Xem lại bảng tin và bình luận đã tải (Room cache)
-- Hiển thị nhãn "Đang xem ngoại tuyến", tự động vô hiệu hóa Đăng bài / Like / Comment
+- Xem lại bảng tin và bình luận đã tải (SQLite cache)
+- Thích, bình luận, đăng bài vẫn thực hiện được: thao tác được lưu kèm nhãn chờ và tự gửi lên khi có mạng; nghe nhạc trực tuyến khi mất mạng sẽ hiện thông báo ngoại tuyến
 
 ### Admin (quản trị viên, thao tác trên mobile)
-- Kế thừa toàn bộ quyền của User; Navigation Drawer hiện thêm mục quản trị
+- Tài khoản quản trị riêng: đăng nhập là vào thẳng trang Quản trị, không dùng giao diện thành viên
 - Xem danh sách bài đăng bị báo cáo, xem chi tiết lý do và nội dung
-- Xử lý báo cáo: "Xóa bài" (chuyển status thành `deleted`) hoặc "Bỏ qua" (giữ nguyên bài)
-- Xem danh sách người dùng, "Khóa tài khoản" (`isActive = false`) hoặc "Mở khóa" (`isActive = true`)
-- Cơ chế khóa hoạt động qua 2 lớp: (1) client lắng nghe Firestore Snapshot Listener, khi phát hiện `isActive = false` thì tự đăng xuất và quay về màn hình đăng nhập; (2) Firebase Security Rules từ chối mọi thao tác ghi của tài khoản bị khóa
+- Xử lý báo cáo: "Ẩn bài", "Xóa bài" hoặc "Bỏ qua" (giữ nguyên bài)
+- Xem danh sách người dùng, "Khóa tài khoản" (isLocked = true) hoặc "Mở khóa" (isLocked = false)
+- Khi tài khoản bị khóa: client lắng nghe Firestore Snapshot Listener, phát hiện isLocked = true thì tự đăng xuất và quay về màn hình đăng nhập; tài khoản bị khóa không đăng nhập lại được cho tới khi được mở khóa
 
 ## CẤU TRÚC THƯ MỤC DỰ KIẾN
 
 ```
-app/
-├─ BaseApplication.java              // Đếm Activity đang mở để dừng nhạc khi thoát app
-├─ data/
-│  ├─ local/
-│  │  ├─ AppDatabase.java            // Kế thừa RoomDatabase
-│  │  ├─ dao/
-│  │  │  ├─ PostDao.java
-│  │  │  └─ CommentDao.java
-│  │  └─ entity/
-│  │     ├─ PostEntity.java
-│  │     └─ CommentEntity.java
-│  └─ repository/
-│     ├─ BaseRepository.java         // Kiểm tra kết nối mạng
-│     ├─ PostRepository.java         // Chọn nguồn dữ liệu: Firestore hay Room
-│     ├─ UserRepository.java
-│     ├─ MusicRepository.java        // Gọi iTunes API
-│     └─ DataCallback.java           // Interface callback cho các Repository
+firestore.rules                        // Luật bảo mật Firestore
+app/src/main/
+├─ java/com/example/melodyverse/
+│  ├─ SplashActivity.java               // Màn mở app
+│  ├─ LoginActivity.java, RegisterActivity.java   // Đăng nhập, đăng ký
+│  ├─ BaseActivity.java                 // Lớp cha: thanh điều hướng, Mini Player, màn Đang phát
+│  ├─ MainActivity.java                 // Bảng tin + tìm kiếm + lọc thể loại
+│  ├─ PostDetailActivity.java           // Chi tiết bài đăng + bình luận
+│  ├─ CreatePostActivity.java           // Đăng / sửa bài
+│  ├─ DiscoverActivity.java             // Khám phá: bảng xếp hạng, vòng xoay đĩa than
+│  ├─ NotificationsActivity.java        // Thông báo
+│  ├─ ProfileActivity.java              // Hồ sơ, theo dõi, nhạc đã lưu
+│  ├─ SettingsActivity.java             // Cài đặt
+│  ├─ AdminActivity.java                // Trang Quản trị
+│  │
+│  ├─ AuthManager.java, GoogleSignInHelper.java, SessionManager.java   // Xác thực, phiên đăng nhập
+│  ├─ DatabaseHelper.java               // SQLite (cache + hàng chờ thao tác)
+│  ├─ SyncManager.java, SyncStatus.java // Đồng bộ SQLite <-> Firestore, realtime
+│  ├─ MusicService.java                 // Phát nhạc nền (Service + MediaPlayer)
+│  ├─ NotificationHelper.java           // Thông báo điều khiển nhạc
+│  ├─ AudiusApi.java                    // Lấy bài hát từ link Audius
+│  ├─ MusicChart.java                   // Bảng xếp hạng, tìm kiếm không dấu
+│  ├─ NetworkMonitor.java               // Phát hiện mất / có kết nối mạng
+│  ├─ PostAdapter, CommentAdapter, TrackListAdapter, FollowUserAdapter, SimilarPostAdapter
+│  ├─ DiscWheelView, WaveformSeekBar    // View tùy chỉnh
+│  └─ PostModel, UserModel, CommentModel, NotificationModel   // Model
 │
-├─ model/
-│  ├─ BaseEntity.java                // Abstract, lớp cha chung cho các model
-│  ├─ User.java, AdminUser.java      // AdminUser extends User
-│  ├─ Post.java, Comment.java
-│  ├─ Like.java, Follow.java, Report.java
-│  └─ Track.java                     // Model riêng cho trình phát nhạc
-│
-├─ service/
-│  ├─ BaseMusicService.java          // Abstract extends Service
-│  ├─ MusicService.java              // prepareAsync, play, pause, stop, release
-│  └─ MusicQueueManager.java         // Singleton giữ playlist và vị trí bài hiện tại
-│
-├─ ui/
-│  ├─ auth/
-│  │  └─ LoginActivity.java          // Đăng nhập Google
-│  ├─ feed/
-│  │  └─ FeedActivity.java           // Navigation Drawer + Mini Player
-│  ├─ post/
-│  │  ├─ PostDetailActivity.java     // Chi tiết bài đăng + bình luận
-│  │  ├─ CreatePostActivity.java     // Form đăng bài (2 lựa chọn)
-│  │  └─ FullPlayerActivity.java     // Trình phát toàn màn hình
-│  ├─ profile/
-│  │  ├─ ProfileActivity.java        // Hồ sơ + nút Follow
-│  │  └─ EditProfileActivity.java    // Tạo hồ sơ lần đầu và sửa hồ sơ
-│  ├─ search/
-│  │  └─ SearchActivity.java         // Tìm bài hát / người dùng
-│  └─ admin/
-│     ├─ AdminDashboardActivity.java // Danh sách báo cáo
-│     └─ ManageUsersActivity.java    // Khóa / mở khóa tài khoản
-│
-├─ api/
-│  ├─ ITunesApi.java                 // Retrofit interface
-│  └─ RetrofitClient.java            // Cấu hình Retrofit & Gson
-│
-├─ viewmodel/
-│  ├─ FeedViewModel.java
-│  ├─ PostDetailViewModel.java
-│  └─ CreatePostViewModel.java
-│
-├─ adapter/
-│  ├─ PostAdapter.java
-│  └─ CommentAdapter.java
-│
-└─ util/
-   ├─ NetworkUtils.java
-   ├─ GenreMapper.java               // Ánh xạ thể loại iTunes về 6 thể loại chuẩn
-   └─ Constants.java
-
-res/
-├─ layout/                           // Layout dọc + Mini Player
-├─ layout-land/                      // Layout ngang (GridLayoutManager)
-├─ drawable/                         // Avatar, ảnh bìa mặc định
-└─ menu/                             // drawer_menu.xml
+└─ res/
+   ├─ layout/                           // Giao diện các màn hình, dialog, item
+   ├─ drawable/                         // Icon, nền, avatar, ảnh tĩnh
+   ├─ menu/                             // bottom_nav_menu.xml
+   ├─ raw/                              // Nhạc mẫu (nghe được khi ngoại tuyến)
+   ├─ anim/                             // Hiệu ứng chuyển
+   └─ values/, values-night/            // Màu, theme (có chế độ tối)
 ```
 ## THÀNH VIÊN NHÓM
 
