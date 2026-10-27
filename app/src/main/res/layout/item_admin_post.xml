@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_admin_card"
+    android:padding="14dp"
+    android:layout_marginBottom="10dp">
+
+    <TextView
+        android:id="@+id/tv_admin_post_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="50 Cuộc Gọi Nhỡ"
+        android:textColor="@color/colorTextPrimary"
+        android:textStyle="bold"
+        android:textSize="15sp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/tv_admin_post_artist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tinh Hà"
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="13sp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/tv_admin_post_author"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="\@minhthu • 2 giờ trước"
+        android:textColor="@color/colorTextMuted"
+        android:textSize="12sp"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/tv_admin_post_caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nội dung bài viết..."
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="13sp"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:layout_marginTop="8dp" />
+
+    <!-- Trạng thái kiểm duyệt: số lượt báo cáo + lý do, hoặc "Đang bị ẩn" -->
+    <TextView
+        android:id="@+id/tv_admin_post_moderation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="2 lượt báo cáo • Spam"
+        android:textColor="@color/colorDanger"
+        android:textSize="12sp"
+        android:layout_marginTop="6dp"
+        android:visibility="gone" />
+
+    <!-- Hàng 1: Xem bài đăng + Nghe thử -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp">
+
+        <TextView
+            android:id="@+id/btn_admin_view_post"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_weight="1"
+            android:text="Xem bài đăng"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:background="@drawable/bg_admin_btn_outline"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/btn_admin_play_post"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_weight="1"
+            android:text="Nghe thử"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:background="@drawable/bg_admin_btn_green" />
+    </LinearLayout>
+
+    <!-- Hàng 2: (Bỏ qua) + Ẩn bài + Xóa -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <!-- Bỏ qua báo cáo (chỉ ở tab Bài viết vi phạm) -->
+        <TextView
+            android:id="@+id/btn_admin_dismiss_report"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_weight="1"
+            android:text="Bỏ qua"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:background="@drawable/bg_admin_btn_outline"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/btn_admin_hide_post"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_weight="1"
+            android:text="Ẩn bài"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:background="@drawable/bg_admin_btn_red"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/btn_admin_delete_post"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_weight="1"
+            android:text="Xóa"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:background="@drawable/bg_admin_btn_red" />
+    </LinearLayout>
+
+</LinearLayout>
