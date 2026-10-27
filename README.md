@@ -87,6 +87,7 @@ Trong thời đại âm nhạc trở thành một phần không thể thiếu c�
 - Lựa chọn 1 (bài hát mẫu): chọn bài hát có sẵn trong ứng dụng
 - Lựa chọn 2 (dán link nhạc): dán link nhạc trực tuyến (hỗ trợ link Audius, app tự lấy tên bài, nghệ sĩ và link phát), nhập tên bài, nghệ sĩ, chọn thể loại (V-Pop, Rap / Hip-Hop, R&B, Ballad, Indie / Acoustic, EDM), thêm hashtag
 - Viết caption, chọn chế độ Công khai / Riêng tư rồi đăng bài; có thể sửa / xóa bài của mình
+
 **Nghe nhạc & tương tác**
 - Nhấn ▶️ để phát nhạc, Mini Player hiển thị dưới cùng, nhấn vào để mở Full Player (ảnh bìa, SeekBar, Next/Previous)
 - Tự động chuyển bài khi hết bài
