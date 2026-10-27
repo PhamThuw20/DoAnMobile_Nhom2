@@ -1,0 +1,150 @@
+rules_version = '2';
+
+// Security Rules cho Firestore của MelodyVerse.
+// Cách dùng: Firebase Console → Firestore Database → tab Rules → dán toàn bộ file này → Publish.
+// (Test mode chỉ cho đọc/ghi tự do trong 30 ngày; sau đó cần các rules này để app tiếp tục chạy.)
+//
+// Quyền sở hữu: users/{username}.uid gắn hồ sơ với tài khoản Firebase Auth.
+// Quyền Admin: có document admins/{uid}.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userPath(username) {
+      return /databases/$(database)/documents/users/$(username);
+    }
+
+    // Người đang đăng nhập chính là chủ của username (dùng khi sửa / xóa)
+    function isUser(username) {
+      return signedIn() && exists(userPath(username))
+          && get(userPath(username)).data.get('uid', '') == request.auth.uid;
+    }
+
+    // Như isUser nhưng xét cả dữ liệu ghi cùng lượt (dùng khi tạo mới, ví dụ lúc đăng ký)
+    function willBeUser(username) {
+      return signedIn() && existsAfter(userPath(username))
+          && getAfter(userPath(username)).data.get('uid', '') == request.auth.uid;
+    }
+
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Lần nạp dữ liệu mẫu đầu tiên (chưa có meta/seed)
+    function seeding() {
+      return signedIn() && !exists(/databases/$(database)/documents/meta/seed);
+    }
+
+    // Người đang đăng nhập là tác giả của bài postId (được dọn bình luận / lượt thích khi xóa bài của mình)
+    function isPostAuthor(postId) {
+      return exists(/databases/$(database)/documents/posts/$(postId))
+          && isUser(get(/databases/$(database)/documents/posts/$(postId)).data.authorUsername);
+    }
+
+    function onlyChanges(keys) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
+    }
+
+    match /meta/{docId} {
+      allow read: if signedIn();
+      allow create: if seeding();
+      allow update, delete: if isAdmin();
+    }
+
+    match /admins/{uid} {
+      allow read: if signedIn();
+      allow create: if isAdmin()
+          || (signedIn() && uid == request.auth.uid && request.auth.token.email == 'admin@melodyverse.vn');
+      allow delete: if isAdmin();
+    }
+
+    match /users/{username} {
+      // Đọc công khai để đăng nhập được bằng username (tra email trước khi đăng nhập)
+      allow read: if true;
+      allow create: if seeding() || isAdmin()
+          || (signedIn() && request.resource.data.uid == request.auth.uid
+              && request.resource.data.username == username);
+      allow update: if seeding() || isAdmin()
+          // Chủ tài khoản chỉ được sửa tên, giới thiệu, ảnh đại diện (không tự đổi vai trò / mở khóa)
+          || (signedIn() && resource.data.get('uid', '') == request.auth.uid
+              && onlyChanges(['fullName', 'bio', 'avatarIndex', 'needsOnboarding']))
+          // Tài khoản demo nhận quyền sở hữu hồ sơ mẫu lần đầu đăng nhập (đúng email)
+          || (signedIn() && resource.data.get('uid', '') == ''
+              && resource.data.email == request.auth.token.email
+              && request.resource.data.uid == request.auth.uid
+              && onlyChanges(['uid']));
+    }
+
+    match /posts/{postId} {
+      allow read: if signedIn();
+      allow create: if seeding() || isAdmin() || willBeUser(request.resource.data.authorUsername);
+      allow update: if seeding() || isAdmin() || isUser(resource.data.authorUsername)
+          // Ai cũng được cộng / trừ bộ đếm khi thích, bình luận, chia sẻ
+          || (signedIn() && onlyChanges(['likeCount', 'commentCount', 'shareCount']));
+      allow delete: if isAdmin() || isUser(resource.data.authorUsername);
+
+      match /comments/{commentId} {
+        allow read: if signedIn();
+        allow create: if seeding() || isAdmin() || willBeUser(request.resource.data.authorUsername);
+        allow update: if seeding() || isAdmin();
+        allow delete: if isAdmin() || isUser(resource.data.authorUsername) || isPostAuthor(postId);
+      }
+    }
+
+    // ID document = {postId}_{username} nên mỗi người chỉ thích / lưu một bài một lần.
+    // bookmarks = Danh sách nhạc đã lưu: document chứa luôn thông tin bản nhạc (songTitle, artistName, musicUrl...)
+    match /likes/{likeId} {
+      allow read: if signedIn();
+      allow create: if seeding()
+          || (willBeUser(request.resource.data.username)
+              && likeId == request.resource.data.postId + '_' + request.resource.data.username);
+      allow delete: if isAdmin() || isUser(resource.data.username) || isPostAuthor(resource.data.postId);
+    }
+
+    match /bookmarks/{bookmarkId} {
+      allow read: if signedIn();
+      allow create, update: if seeding()
+          || (willBeUser(request.resource.data.username)
+              && bookmarkId == request.resource.data.postId + '_' + request.resource.data.username);
+      allow delete: if isAdmin() || isUser(resource.data.username) || isPostAuthor(resource.data.postId);
+    }
+
+    // Báo cáo vi phạm: ID document = {postId}_{người báo cáo} nên mỗi người chỉ báo cáo một bài một lần.
+    // Chỉ Quản trị viên đọc và xử lý (ẩn / xóa bài, bỏ qua báo cáo).
+    match /reports/{reportId} {
+      allow read, delete: if isAdmin();
+      allow create, update: if willBeUser(request.resource.data.reporter)
+          && reportId == request.resource.data.postId + '_' + request.resource.data.reporter;
+    }
+
+    // ID document = {follower}_{following}
+    match /follows/{followId} {
+      allow read: if signedIn();
+      allow create, update: if seeding()
+          || (willBeUser(request.resource.data.follower)
+              && followId == request.resource.data.follower + '_' + request.resource.data.following);
+      allow delete: if isAdmin() || isUser(resource.data.follower);
+    }
+
+    // Thông báo: mỗi document thuộc đúng MỘT người nhận (recipientUid = uid Firebase Auth của người nhận).
+    // ID cố định theo hành động (like_{postId}_{actor}, comment_{commentId}, follow_{actor}_{recipient},
+    // welcome_{username}) nên gửi lại không tạo trùng.
+    match /notifications/{notifId} {
+      // Chỉ người nhận đọc được (resource == null: kiểm tra document chưa tồn tại trước khi tạo)
+      allow read: if signedIn() && (resource == null || resource.data.recipientUid == request.auth.uid || isAdmin());
+      // Người thực hiện hành động tạo cho người nhận; hoặc người nhận tự tạo (chào mừng / thông báo minh họa)
+      allow create: if signedIn() && request.resource.data.read == false
+          && (willBeUser(request.resource.data.actor) || request.resource.data.recipientUid == request.auth.uid);
+      // Người nhận chỉ được đổi trạng thái đã đọc
+      allow update: if signedIn() && resource.data.recipientUid == request.auth.uid
+          && onlyChanges(['read', 'readAt']);
+      // Người thực hiện gỡ khi bỏ thích / bỏ theo dõi; người nhận hoặc Admin được xóa
+      allow delete: if isAdmin() || resource.data.recipientUid == request.auth.uid
+          || isUser(resource.data.actor);
+    }
+  }
+}

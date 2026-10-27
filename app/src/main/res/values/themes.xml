@@ -1,0 +1,72 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Base.Theme.MELODYVERSE" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorAccent</item>
+        <item name="colorSecondary">@color/colorAccent</item>
+        <item name="android:statusBarColor">@color/colorBackgroundGradientTop</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@drawable/bg_screen_gradient</item>
+        <item name="colorSurface">@color/colorSurface</item>
+        <item name="android:textColorPrimary">@color/colorTextPrimary</item>
+        <item name="android:textColorSecondary">@color/colorTextSecondary</item>
+        <item name="colorControlNormal">@color/colorTextSecondary</item>
+        <item name="bottomNavigationStyle">@style/Widget.MelodyVerse.BottomNavigationView</item>
+        <item name="android:windowAnimationStyle">@style/Animation.MelodyVerse.Activity</item>
+    </style>
+
+    <!-- Chuyển màn hình: hiện dần / mờ dần thay cho hiệu ứng trượt-phóng mặc định (gây giật khi đổi tab) -->
+    <style name="Animation.MelodyVerse.Activity" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/tab_fade_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/tab_hold</item>
+        <item name="android:activityCloseEnterAnimation">@anim/tab_hold</item>
+        <item name="android:activityCloseExitAnimation">@anim/tab_fade_out</item>
+        <item name="android:taskToFrontEnterAnimation">@anim/tab_fade_in</item>
+        <item name="android:taskToFrontExitAnimation">@anim/tab_hold</item>
+    </style>
+
+    <style name="Theme.MELODYVERSE" parent="Base.Theme.MELODYVERSE" />
+
+    <!-- Theme cho hộp thoại: hiển thị dạng popup giữa màn hình (không tràn toàn màn hình) -->
+    <style name="ThemeOverlay.MelodyVerse.Dialog" parent="ThemeOverlay.Material3.Dialog.Alert">
+        <item name="colorPrimary">@color/colorAccent</item>
+        <item name="colorSurface">@color/colorSurface</item>
+        <item name="android:textColorPrimary">@color/colorTextPrimary</item>
+        <item name="android:textColorSecondary">@color/colorTextSecondary</item>
+    </style>
+
+    <!-- Màn mở app: nền trơn để hiệu ứng logo nối liền với lúc bấm icon -->
+    <style name="Theme.MelodyVerse.Splash" parent="Theme.MELODYVERSE">
+        <item name="android:windowBackground">@color/splashBackground</item>
+        <item name="android:statusBarColor">@color/splashBackground</item>
+        <item name="android:navigationBarColor">@color/splashBackground</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <!-- Màn Đang phát toàn màn hình, trượt lên từ đáy -->
+    <style name="Theme.MelodyVerse.Player" parent="Theme.MELODYVERSE">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">@color/colorBackground</item>
+        <item name="android:statusBarColor">@color/colorBackground</item>
+        <item name="android:windowAnimationStyle">@style/Animation.MelodyVerse.Player</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Animation.MelodyVerse.Player" parent="">
+        <item name="android:windowEnterAnimation">@anim/player_enter</item>
+        <item name="android:windowExitAnimation">@anim/player_exit</item>
+    </style>
+
+    <style name="Widget.MelodyVerse.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemActiveIndicatorStyle">@null</item>
+        <item name="itemRippleColor">@android:color/transparent</item>
+    </style>
+
+    <style name="BottomNavTextActive" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="BottomNavTextInactive" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+</resources>

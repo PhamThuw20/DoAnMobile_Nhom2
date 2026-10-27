@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ô lựa chọn Công khai / Riêng tư trong dialog chế độ hiển thị (chưa chọn) -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#337C3AED">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/colorSurfaceSunken" />
+            <stroke android:width="1dp" android:color="@color/colorLine" />
+            <corners android:radius="14dp" />
+        </shape>
+    </item>
+</ripple>
