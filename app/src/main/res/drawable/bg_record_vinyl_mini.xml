@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer Vinyl Body (Glossy Obsidian Record) -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#121214" />
+            <stroke android:width="1dp" android:color="#27272A" />
+        </shape>
+    </item>
+    <!-- Vinyl Groove Ring 1 -->
+    <item android:top="4dp" android:bottom="4dp" android:left="4dp" android:right="4dp">
+        <shape android:shape="oval">
+            <stroke android:width="0.75dp" android:color="#27272A" />
+        </shape>
+    </item>
+    <!-- Vinyl Groove Ring 2 -->
+    <item android:top="8dp" android:bottom="8dp" android:left="8dp" android:right="8dp">
+        <shape android:shape="oval">
+            <stroke android:width="0.75dp" android:color="#3F3F46" />
+        </shape>
+    </item>
+    <!-- Center Label (Vibrant Gradient Core) -->
+    <item android:top="13dp" android:bottom="13dp" android:left="13dp" android:right="13dp">
+        <shape android:shape="oval">
+            <gradient
+                android:angle="45"
+                android:startColor="#8B5CF6"
+                android:endColor="#EC4899"
+                android:type="linear" />
+            <stroke android:width="1dp" android:color="#F43F5E" />
+        </shape>
+    </item>
+    <!-- Center Spindle Hole -->
+    <item android:top="19dp" android:bottom="19dp" android:left="19dp" android:right="19dp">
+        <shape android:shape="oval">
+            <solid android:color="#0F0F12" />
+            <stroke android:width="0.5dp" android:color="#E2E8F0" />
+        </shape>
+    </item>
+</layer-list>

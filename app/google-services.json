@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "103709418715",
+    "project_id": "melodyverse-c9478",
+    "storage_bucket": "melodyverse-c9478.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:103709418715:android:9a8e2656bbe9b8d91618fe",
+        "android_client_info": {
+          "package_name": "com.example.melodyverse"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "103709418715-cb89tamr8eet2acn6rllbpa541uarero.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.melodyverse",
+            "certificate_hash": "09ec3f0480d5e816c802b708ef96ed77b226d570"
+          }
+        },
+        {
+          "client_id": "103709418715-49ucdecraadlu5gku9ni7khec9rs8dbd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBR22bu7K-vvHF7MQodGgbVIYEdwf5Z5gc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "103709418715-49ucdecraadlu5gku9ni7khec9rs8dbd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

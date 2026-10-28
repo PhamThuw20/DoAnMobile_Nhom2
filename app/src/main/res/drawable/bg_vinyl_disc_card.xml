@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thân đĩa than tròn cho ảnh bìa trên card bài hát (nhãn đĩa màu theo bài được vẽ đè bằng code) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#141418" />
+            <stroke android:width="1dp" android:color="#2A2A30" />
+        </shape>
+    </item>
+    <!-- Rãnh đĩa -->
+    <item android:top="4dp" android:bottom="4dp" android:left="4dp" android:right="4dp">
+        <shape android:shape="oval">
+            <stroke android:width="0.75dp" android:color="#2C2C33" />
+        </shape>
+    </item>
+    <item android:top="7.5dp" android:bottom="7.5dp" android:left="7.5dp" android:right="7.5dp">
+        <shape android:shape="oval">
+            <stroke android:width="0.75dp" android:color="#3A3A42" />
+        </shape>
+    </item>
+    <item android:top="10.5dp" android:bottom="10.5dp" android:left="10.5dp" android:right="10.5dp">
+        <shape android:shape="oval">
+            <stroke android:width="0.5dp" android:color="#2C2C33" />
+        </shape>
+    </item>
+</layer-list>
