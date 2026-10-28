@@ -18,7 +18,8 @@
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:screenOrientation="portrait"
+            android:screenOrientation="fullSensor"
+            android:configChanges="orientation|screenSize"
             android:theme="@style/Theme.MelodyVerse.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,65 +31,55 @@
             android:name=".LoginActivity"
             android:exported="true"
             android:screenOrientation="fullSensor"
-            android:configChanges="orientation|screenSize"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".RegisterActivity"
             android:exported="true"
             android:screenOrientation="fullSensor"
-            android:configChanges="orientation|screenSize"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="fullSensor"
-            android:configChanges="orientation|screenSize"
             android:windowSoftInputMode="adjustResize" />
             
         <activity
             android:name=".ProfileActivity"
             android:screenOrientation="fullSensor"
-            android:configChanges="orientation|screenSize"
             android:exported="true" />
             
         <activity
             android:name=".CreatePostActivity"
             android:screenOrientation="fullSensor"
-            android:configChanges="orientation|screenSize"
             android:exported="true" />
 
         <activity
             android:name=".DiscoverActivity"
             android:screenOrientation="fullSensor"
-            android:configChanges="orientation|screenSize"
             android:exported="true" />
 
         <activity
             android:name=".NotificationsActivity"
             android:screenOrientation="fullSensor"
-            android:configChanges="orientation|screenSize"
             android:exported="true" />
 
         <activity
             android:name=".SettingsActivity"
             android:screenOrientation="fullSensor"
-            android:configChanges="orientation|screenSize"
             android:exported="true"
             android:label="Cài đặt ứng dụng" />
 
         <activity
             android:name=".AdminActivity"
             android:screenOrientation="fullSensor"
-            android:configChanges="orientation|screenSize"
             android:exported="true"
             android:label="Trung tâm Quản trị" />
 
         <activity
             android:name=".PostDetailActivity"
             android:screenOrientation="fullSensor"
-            android:configChanges="orientation|screenSize"
             android:exported="true"
             android:windowSoftInputMode="adjustResize"
             android:label="Chi tiết bài viết" />

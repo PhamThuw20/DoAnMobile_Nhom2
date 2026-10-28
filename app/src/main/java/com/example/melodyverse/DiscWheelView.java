@@ -52,6 +52,8 @@ public class DiscWheelView extends RecyclerView {
     /** 0 = các đĩa còn nằm ngoài mép phải, 1 = đã bung thành vòng cung. */
     private float introProgress = 1f;
     private boolean introPlayed = false;
+    /** Bài cần đưa về giữa ở lần nạp danh sách kế tiếp (khôi phục sau khi xoay màn hình). */
+    private String pendingCenterPostId;
 
     public DiscWheelView(@NonNull Context context) {
         this(context, null);
@@ -94,9 +96,35 @@ public class DiscWheelView extends RecyclerView {
         if (!sameList && !posts.isEmpty()) {
             // Vòng lặp: bắt đầu ở giữa dải vị trí ảo để lướt lên hay xuống đều gặp đĩa
             int start = isLooping() ? (LOOP_ROUNDS / 2) * posts.size() : Math.min(2, posts.size() - 1);
+            int pendingIndex = indexOfPost(pendingCenterPostId);
+            if (pendingIndex >= 0) {
+                start = isLooping() ? (LOOP_ROUNDS / 2) * posts.size() + pendingIndex : pendingIndex;
+            }
+            pendingCenterPostId = null;
+            int target = start;
             centerPosition = NO_POSITION;
-            post(() -> layoutManager.scrollToPositionWithOffset(start, 0));
+            post(() -> layoutManager.scrollToPositionWithOffset(target, 0));
         }
+    }
+
+    private int indexOfPost(@Nullable String postId) {
+        if (postId == null) return -1;
+        for (int i = 0; i < posts.size(); i++) {
+            if (postId.equals(posts.get(i).getId())) return i;
+        }
+        return -1;
+    }
+
+    /** Id bài của đĩa đang nằm giữa (lưu lại khi xoay màn hình), null nếu chưa có. */
+    @Nullable
+    public String getCenterPostId() {
+        if (centerPosition == NO_POSITION || posts.isEmpty()) return null;
+        return postAt(centerPosition).getId();
+    }
+
+    /** Đĩa sẽ được đưa về giữa ở lần {@link #setPosts(List)} kế tiếp (dùng khi Activity được tạo lại). */
+    public void setPendingCenterPostId(@Nullable String postId) {
+        pendingCenterPostId = postId;
     }
 
     /** Từ 3 đĩa trở lên thì vòng xoay lặp vô tận (hết đĩa cuối quay lại đĩa đầu). */
