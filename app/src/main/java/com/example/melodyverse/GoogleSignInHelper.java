@@ -45,6 +45,11 @@ public class GoogleSignInHelper {
     private final Listener listener;
     private boolean busy = false;
 
+    // Lượt đăng nhập Google đang chạy dở. Khi xoay màn hình, Activity (và helper) bị tạo lại nên kết quả
+    // được giao cho helper mới của cùng màn hình thay vì helper cũ gắn với Activity đã bị hủy.
+    private static Class<?> pendingScreen;
+    private static GoogleSignInHelper pendingHelper;
+
     public GoogleSignInHelper(Activity activity, Listener listener) {
         this.activity = activity;
         this.listener = listener;
@@ -53,6 +58,21 @@ public class GoogleSignInHelper {
         logo = activity.findViewById(R.id.iv_google_logo);
         progress = activity.findViewById(R.id.pb_google_loading);
         if (button != null) button.setOnClickListener(v -> start());
+
+        // Activity vừa được tạo lại (xoay màn hình) giữa lúc đang đăng nhập Google: nhận lại lượt đó
+        if (pendingScreen == activity.getClass()) {
+            pendingHelper = this;
+            setBusy(true, "Đang đăng nhập Google...");
+        }
+    }
+
+    /** Helper đang chờ kết quả (null nếu màn hình đã đóng); gọi xong thì kết thúc lượt đăng nhập. */
+    private static GoogleSignInHelper takePending() {
+        GoogleSignInHelper h = pendingHelper;
+        pendingScreen = null;
+        pendingHelper = null;
+        if (h == null || h.activity.isFinishing() || h.activity.isDestroyed()) return null;
+        return h;
     }
 
     /** Web client ID do plugin google-services sinh ra (0 nếu google-services.json chưa có OAuth client). */
@@ -74,6 +94,8 @@ public class GoogleSignInHelper {
             return;
         }
         setBusy(true, "Đang mở tài khoản Google...");
+        pendingScreen = activity.getClass();
+        pendingHelper = this;
 
         GetSignInWithGoogleOption option = new GetSignInWithGoogleOption.Builder(clientId).build();
         GetCredentialRequest request = new GetCredentialRequest.Builder().addCredentialOption(option).build();
@@ -88,29 +110,32 @@ public class GoogleSignInHelper {
                     @Override
                     public void onError(GetCredentialException e) {
                         android.util.Log.w("GoogleSignIn", "Credential Manager lỗi: " + e.getClass().getSimpleName() + " / " + e.getType() + " / " + e.getMessage());
-                        setBusy(false, null);
+                        // Giao kết quả cho helper hiện tại (có thể là helper mới sau khi xoay màn hình)
+                        GoogleSignInHelper h = takePending();
+                        if (h == null) return;
+                        h.setBusy(false, null);
                         if (e instanceof GetCredentialCancellationException) {
                             String msg = e.getMessage() != null ? e.getMessage() : "";
                             if (msg.contains("[16]") || msg.toLowerCase().contains("reauth")) {
                                 // Google trả về hủy sau khi đã chọn tài khoản: thường do SHA-1 của APK
                                 // không khớp OAuth client Android trên Firebase hoặc OAuth consent screen chưa cấu hình.
-                                toast("Google từ chối đăng nhập sau khi chọn tài khoản (" + msg + ").\n\n"
+                                h.toast("Google từ chối đăng nhập sau khi chọn tài khoản (" + msg + ").\n\n"
                                         + "Thường do SHA-1 của bản cài trên máy không khớp với Firebase, "
                                         + "hoặc OAuth consent screen chưa cấu hình / tài khoản chưa nằm trong Test users.");
                             } else {
-                                toast("Bạn đã hủy đăng nhập bằng Google." + (msg.isEmpty() ? "" : "\n(" + msg + ")"));
+                                h.toast("Bạn đã hủy đăng nhập bằng Google." + (msg.isEmpty() ? "" : "\n(" + msg + ")"));
                             }
                         } else if (e instanceof NoCredentialException) {
-                            toast("Không tìm thấy tài khoản Google trên thiết bị. Hãy thêm tài khoản Google trong Cài đặt rồi thử lại.");
+                            h.toast("Không tìm thấy tài khoản Google trên thiết bị. Hãy thêm tài khoản Google trong Cài đặt rồi thử lại.");
                         } else if (e instanceof androidx.credentials.exceptions.GetCredentialProviderConfigurationException) {
-                            toast("Thiết bị chưa hỗ trợ đăng nhập Google: Google Play services quá cũ hoặc chưa được cài. "
+                            h.toast("Thiết bị chưa hỗ trợ đăng nhập Google: Google Play services quá cũ hoặc chưa được cài. "
                                     + "Hãy cập nhật Google Play services (qua Cửa hàng Play) rồi thử lại.");
                         } else if (e instanceof GetCredentialInterruptedException) {
-                            toast("Đăng nhập Google bị gián đoạn, vui lòng thử lại!");
+                            h.toast("Đăng nhập Google bị gián đoạn, vui lòng thử lại!");
                         } else if (!SyncManager.get(activity).isOnline()) {
-                            toast("Mất kết nối mạng khi đăng nhập Google. Vui lòng kết nối lại và thử lại!");
+                            h.toast("Mất kết nối mạng khi đăng nhập Google. Vui lòng kết nối lại và thử lại!");
                         } else {
-                            toast("Không đăng nhập được bằng Google: " + e.getMessage());
+                            h.toast("Không đăng nhập được bằng Google: " + e.getMessage());
                         }
                     }
                 });
@@ -119,23 +144,29 @@ public class GoogleSignInHelper {
     private void handleCredential(Credential credential) {
         if (!(credential instanceof CustomCredential)
                 || !GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {
-            setBusy(false, null);
-            toast("Phương thức xác thực không được hỗ trợ.");
+            GoogleSignInHelper h = takePending();
+            if (h == null) return;
+            h.setBusy(false, null);
+            h.toast("Phương thức xác thực không được hỗ trợ.");
             return;
         }
         String idToken;
         try {
             idToken = GoogleIdTokenCredential.createFrom(((CustomCredential) credential).getData()).getIdToken();
         } catch (Exception e) {
-            setBusy(false, null);
-            toast("Xác thực Google thất bại (token không hợp lệ). Vui lòng thử lại!");
+            GoogleSignInHelper h = takePending();
+            if (h == null) return;
+            h.setBusy(false, null);
+            h.toast("Xác thực Google thất bại (token không hợp lệ). Vui lòng thử lại!");
             return;
         }
-        setBusy(true, "Đang xác thực với MelodyVerse...");
+        GoogleSignInHelper current = pendingHelper;
+        if (current != null) current.setBusy(true, "Đang xác thực với MelodyVerse...");
         new AuthManager(activity).signInWithGoogle(idToken, result -> {
-            if (activity.isFinishing()) return;
-            setBusy(false, null);
-            listener.onResult(result);
+            GoogleSignInHelper h = takePending();
+            if (h == null) return;
+            h.setBusy(false, null);
+            h.listener.onResult(result);
         });
     }
 
@@ -152,7 +183,7 @@ public class GoogleSignInHelper {
 
     /** Hiện lý do bằng hộp thoại (Toast có thể bị hệ thống bỏ qua nên người dùng không thấy). */
     private void toast(String msg) {
-        if (activity.isFinishing()) return;
+        if (activity.isFinishing() || activity.isDestroyed()) return;
         new androidx.appcompat.app.AlertDialog.Builder(activity, R.style.ThemeOverlay_MelodyVerse_Dialog)
                 .setTitle("Đăng nhập Google")
                 .setMessage(msg)
