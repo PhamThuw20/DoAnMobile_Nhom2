@@ -24,6 +24,9 @@ import java.util.Map;
  */
 public class AdminActivity extends BaseActivity {
 
+    // Khóa lưu trạng thái khi xoay màn hình (Activity bị hủy và tạo lại)
+    private static final String STATE_SELECTED_TAB = "state_admin_selected_tab";
+
     private TextView tvStatPosts, tvStatUsers, tvStatReports, tvStatSystem;
     private TextView tabPosts, tabUsers, tabReports, tvEmpty;
     private RecyclerView rvPosts, rvUsers, rvReports;
@@ -42,6 +45,12 @@ public class AdminActivity extends BaseActivity {
     private final List<UserModel> allUserList = new ArrayList<>();
     /** Kênh lắng nghe realtime collection reports (mở khi màn hình hiển thị, đóng khi rời màn hình). */
     private com.google.firebase.firestore.ListenerRegistration reportsReg;
+    /** Tab đang chọn: 0 = Bài hát, 1 = Người dùng, 2 = Vi phạm. */
+    private int selectedTab = 0;
+    /** true = lần tải đầu tiên sau khi xoay màn hình: không lặp lại các Toast trạng thái đã báo trước đó. */
+    private boolean quietNextLoad = false;
+    /** Dialog xác nhận / đăng xuất đang mở (đóng khi Activity bị hủy để tránh rò rỉ cửa sổ). */
+    private AlertDialog activeDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +74,9 @@ public class AdminActivity extends BaseActivity {
         if (bottomNavigationView != null) {
             bottomNavigationView.setVisibility(View.GONE);
         }
+        // Màn ngang: ẩn luôn đường kẻ cạnh thanh điều hướng dọc
+        View navDivider = findViewById(R.id.nav_divider);
+        if (navDivider != null) navDivider.setVisibility(View.GONE);
 
         // Ẩn thanh mini player trong Admin từ đầu, chỉ hiện khi Admin bấm nghe thử để kiểm duyệt
         if (miniPlayerContainer != null && !MusicService.isPlaying) {
@@ -161,7 +173,28 @@ public class AdminActivity extends BaseActivity {
         }
 
         setupTabs();
+        // Xoay màn hình: chọn lại đúng tab. Ô tìm người dùng (có id) tự khôi phục chữ → TextWatcher lọc lại;
+        // vị trí cuộn của danh sách do RecyclerView / ScrollView (có id) tự khôi phục khi dữ liệu nạp ở onResume.
+        if (savedInstanceState != null) {
+            quietNextLoad = true;
+            int tab = savedInstanceState.getInt(STATE_SELECTED_TAB, 0);
+            selectTab(tab == 1 ? tabUsers : tab == 2 ? tabReports : tabPosts);
+        }
         // Dữ liệu được tải ở onResume (mở màn hình và mỗi lần quay lại)
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(STATE_SELECTED_TAB, selectedTab);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (activeDialog != null && activeDialog.isShowing()) {
+            activeDialog.dismiss();
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -223,9 +256,16 @@ public class AdminActivity extends BaseActivity {
             showDashboard(dbHelper.getAllPosts(), dbHelper.getAllUsers(), null);
         }
         setSystemStatus(null);
+        boolean quiet = quietNextLoad;
+        quietNextLoad = false;
         sync.loadAdminData((status, posts, users, reports) -> {
             if (isFinishing() || isDestroyed()) return;
             setSystemStatus(status);
+            if (quiet) {
+                // Vừa xoay màn hình: chỉ cập nhật dữ liệu, các thông báo trạng thái đã hiện trước đó
+                if (status == SyncManager.Status.OK) showDashboard(posts, users, reports);
+                return;
+            }
             if (status == SyncManager.Status.OK) {
                 showDashboard(posts, users, reports);
                 if (reports == null) {
@@ -341,6 +381,7 @@ public class AdminActivity extends BaseActivity {
     }
 
     private void selectTab(TextView selected) {
+        selectedTab = selected == tabUsers ? 1 : selected == tabReports ? 2 : 0;
         for (TextView tab : new TextView[]{tabPosts, tabUsers, tabReports}) {
             if (tab == selected) {
                 tab.setBackgroundResource(R.drawable.bg_admin_tab_selected);
@@ -364,6 +405,7 @@ public class AdminActivity extends BaseActivity {
         builder.setView(dialogView);
 
         AlertDialog dialog = builder.create();
+        activeDialog = dialog;
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
@@ -417,6 +459,7 @@ public class AdminActivity extends BaseActivity {
                                         String confirmText, Runnable onConfirm) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_admin_confirm, null, false);
         AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
+        activeDialog = dialog;
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }

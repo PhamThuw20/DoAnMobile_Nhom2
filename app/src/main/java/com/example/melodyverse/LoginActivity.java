@@ -16,9 +16,24 @@ public class LoginActivity extends AppCompatActivity {
 
     public static final String EXTRA_MESSAGE = "extra_login_message";
 
+    // Trạng thái lưu lại khi xoay màn hình (Activity bị hủy rồi tạo lại)
+    private static final String KEY_FORGOT_OPEN = "forgot_open";
+    private static final String KEY_FORGOT_IDENTIFIER = "forgot_identifier";
+    private static final String KEY_FORGOT_SENT_MSG = "forgot_sent_msg";
+
+    // Lượt đăng nhập đang chờ Firebase + màn Đăng nhập đang hiển thị: xoay màn hình giữa chừng thì
+    // kết quả được giao cho Activity mới thay vì Activity cũ đã bị hủy
+    private static boolean signingIn = false;
+    private static LoginActivity activeInstance;
+
     private EditText etUsername, etPassword;
     private View btnLogin;
     private CharSequence loginButtonText = "ĐĂNG NHẬP";
+
+    // Hộp thoại Quên mật khẩu đang mở (để lưu / khôi phục khi xoay màn hình)
+    private AlertDialog forgotDialog;
+    private EditText etForgotIdentifier;
+    private String forgotSentMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +52,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_login);
+        activeInstance = this;
 
         etUsername = findViewById(R.id.et_username);
         etPassword = findViewById(R.id.et_password);
@@ -65,7 +81,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Quên mật khẩu: Firebase Authentication gửi email chứa link đặt lại mật khẩu
         if (tvForgotPassword != null) {
-            tvForgotPassword.setOnClickListener(v -> showForgotPasswordDialog());
+            tvForgotPassword.setOnClickListener(v -> showForgotPasswordDialog(null, null));
         }
 
         // Đăng ký tài khoản - Chuyển sang RegisterActivity chuyên biệt
@@ -78,6 +94,9 @@ public class LoginActivity extends AppCompatActivity {
 
         // Nút Đăng nhập (Firebase Authentication)
         btnLogin = findViewById(R.id.btn_login);
+        if (btnLogin instanceof TextView) loginButtonText = ((TextView) btnLogin).getText();
+        // Vừa xoay màn hình khi đang đăng nhập: giữ nút ở trạng thái chờ đến khi có kết quả
+        if (signingIn) setLoading(true);
         btnLogin.setOnClickListener(v -> {
             String username = etUsername != null ? etUsername.getText().toString().trim() : "";
             String password = etPassword != null ? etPassword.getText().toString().trim() : "";
@@ -94,25 +113,14 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
+            signingIn = true;
             setLoading(true);
             new AuthManager(this).signIn(username, password, result -> {
-                if (isFinishing()) return;
-                setLoading(false);
-                if (result.status == AuthManager.Status.LOCKED) {
-                    showLockedDialog(result.username);
-                } else if (result.status == AuthManager.Status.FAILED) {
-                    if (AuthManager.FIELD_USERNAME.equals(result.field)) {
-                        etUsername.setError(result.message);
-                        etUsername.requestFocus();
-                    } else if (AuthManager.FIELD_PASSWORD.equals(result.field)) {
-                        etPassword.setError(result.message);
-                        etPassword.requestFocus();
-                    }
-                    Toast.makeText(this, result.message, Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(this, "Chào mừng đến với MelodyVerse!", Toast.LENGTH_SHORT).show();
-                    openHome(result.isAdmin, result.username, result.needsOnboarding);
-                }
+                signingIn = false;
+                // Giao kết quả cho màn Đăng nhập hiện tại (có thể là Activity mới sau khi xoay màn hình)
+                LoginActivity target = activeInstance;
+                if (target == null || target.isFinishing() || target.isDestroyed()) return;
+                target.onSignInResult(result);
             });
         });
 
@@ -133,13 +141,60 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         // Thông báo khi bị đưa về màn đăng nhập (ví dụ tài khoản vừa bị khóa)
+        // (chỉ hiện lần đầu, không hiện lại mỗi lần xoay màn hình)
         String message = getIntent().getStringExtra(EXTRA_MESSAGE);
-        if (message != null) {
+        if (message != null && savedInstanceState == null) {
             new AlertDialog.Builder(this, R.style.ThemeOverlay_MelodyVerse_Dialog)
                     .setTitle("Phiên đăng nhập đã kết thúc")
                     .setMessage(message)
                     .setPositiveButton("Đã hiểu", null)
                     .show();
+        }
+
+        // Mở lại hộp thoại Quên mật khẩu nếu nó đang mở trước khi xoay màn hình
+        if (savedInstanceState != null && savedInstanceState.getBoolean(KEY_FORGOT_OPEN)) {
+            showForgotPasswordDialog(savedInstanceState.getString(KEY_FORGOT_IDENTIFIER),
+                    savedInstanceState.getString(KEY_FORGOT_SENT_MSG));
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (forgotDialog != null && forgotDialog.isShowing()) {
+            outState.putBoolean(KEY_FORGOT_OPEN, true);
+            if (etForgotIdentifier != null) {
+                outState.putString(KEY_FORGOT_IDENTIFIER, etForgotIdentifier.getText().toString());
+            }
+            outState.putString(KEY_FORGOT_SENT_MSG, forgotSentMessage);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (activeInstance == this) activeInstance = null;
+        // Đóng hộp thoại để không bị rò rỉ cửa sổ khi Activity bị hủy (sẽ mở lại sau khi tạo lại)
+        if (forgotDialog != null) forgotDialog.dismiss();
+        super.onDestroy();
+    }
+
+    /** Kết quả đăng nhập bằng tài khoản + mật khẩu (Firebase Authentication). */
+    private void onSignInResult(AuthManager.Result result) {
+        setLoading(false);
+        if (result.status == AuthManager.Status.LOCKED) {
+            showLockedDialog(result.username);
+        } else if (result.status == AuthManager.Status.FAILED) {
+            if (AuthManager.FIELD_USERNAME.equals(result.field)) {
+                etUsername.setError(result.message);
+                etUsername.requestFocus();
+            } else if (AuthManager.FIELD_PASSWORD.equals(result.field)) {
+                etPassword.setError(result.message);
+                etPassword.requestFocus();
+            }
+            Toast.makeText(this, result.message, Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "Chào mừng đến với MelodyVerse!", Toast.LENGTH_SHORT).show();
+            openHome(result.isAdmin, result.username, result.needsOnboarding);
         }
     }
 
@@ -152,11 +207,19 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void showForgotPasswordDialog() {
+    /**
+     * savedIdentifier: nội dung ô nhập cần khôi phục (null = điền sẵn từ màn đăng nhập);
+     * sentMessage: khác null nếu hộp thoại đang ở trạng thái "Đã gửi email" trước khi xoay màn hình.
+     */
+    private void showForgotPasswordDialog(String savedIdentifier, String sentMessage) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_forgot_password, null, false);
         EditText etIdentifier = dialogView.findViewById(R.id.et_forgot_identifier);
-        // Điền sẵn tài khoản đang nhập ở màn đăng nhập (nếu có)
-        if (etUsername != null) etIdentifier.setText(etUsername.getText().toString().trim());
+        if (savedIdentifier != null) {
+            etIdentifier.setText(savedIdentifier);
+        } else if (etUsername != null) {
+            // Điền sẵn tài khoản đang nhập ở màn đăng nhập (nếu có)
+            etIdentifier.setText(etUsername.getText().toString().trim());
+        }
 
         Button btnSend = dialogView.findViewById(R.id.btn_forgot_send);
         Button btnCancel = dialogView.findViewById(R.id.btn_forgot_cancel);
@@ -166,6 +229,12 @@ public class LoginActivity extends AppCompatActivity {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
+        forgotDialog = dialog;
+        etForgotIdentifier = etIdentifier;
+        forgotSentMessage = null;
+        dialog.setOnDismissListener(d -> {
+            if (forgotDialog == dialog) forgotDialog = null;
+        });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         // Tự xử lý nút Gửi để hộp thoại không đóng khi nhập sai / đang gửi
@@ -181,7 +250,7 @@ public class LoginActivity extends AppCompatActivity {
             btnSend.setText("Đang gửi...");
             dialog.setCancelable(false);
             new AuthManager(this).sendPasswordReset(identifier, result -> {
-                if (isFinishing()) return;
+                if (isFinishing() || isDestroyed()) return;
                 btnSend.setEnabled(true);
                 btnCancel.setEnabled(true);
                 btnSend.setText("Gửi email");
@@ -200,11 +269,13 @@ public class LoginActivity extends AppCompatActivity {
             btnSend.performClick();
             return true;
         });
+        if (sentMessage != null) showForgotPasswordSent(dialogView, dialog, sentMessage);
         dialog.show();
     }
 
     /** Gửi thành công: chuyển ngay hộp thoại sang trạng thái "Đã gửi email" thay vì mở thêm hộp thoại mới. */
     private void showForgotPasswordSent(View dialogView, AlertDialog dialog, String message) {
+        forgotSentMessage = message;
         ((android.widget.ImageView) dialogView.findViewById(R.id.iv_forgot_icon)).setImageResource(R.drawable.ic_mail);
         ((TextView) dialogView.findViewById(R.id.tv_forgot_title)).setText("Đã gửi email");
         ((TextView) dialogView.findViewById(R.id.tv_forgot_msg)).setText(message);
