@@ -14,6 +14,14 @@ import androidx.appcompat.app.AppCompatActivity;
  */
 public class RegisterActivity extends AppCompatActivity {
 
+    // Trạng thái lưu lại khi xoay màn hình (Activity bị hủy rồi tạo lại)
+    private static final String KEY_AVATAR_INDEX = "selected_avatar_index";
+
+    // Lượt đăng ký đang chờ Firebase + màn Đăng ký đang hiển thị: xoay màn hình giữa chừng thì
+    // kết quả được giao cho Activity mới thay vì Activity cũ đã bị hủy
+    private static boolean registering = false;
+    private static RegisterActivity activeInstance;
+
     private EditText etFullName, etUsername, etEmail, etPassword, etConfirmPassword;
     private FrameLayout[] avatarViews;
     private int selectedAvatarIndex = 0;
@@ -22,10 +30,37 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+        activeInstance = this;
+
+        if (savedInstanceState != null) {
+            selectedAvatarIndex = savedInstanceState.getInt(KEY_AVATAR_INDEX, 0);
+        }
 
         initViews();
         setupAvatarSelection();
         setupListeners();
+
+        // Vừa xoay màn hình khi đang tạo tài khoản: giữ nút ở trạng thái chờ đến khi có kết quả
+        if (registering) setSubmitLoading(true);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(KEY_AVATAR_INDEX, selectedAvatarIndex);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (activeInstance == this) activeInstance = null;
+        super.onDestroy();
+    }
+
+    private void setSubmitLoading(boolean loading) {
+        View btnSubmit = findViewById(R.id.btn_register_submit);
+        if (btnSubmit == null) return;
+        btnSubmit.setEnabled(!loading);
+        btnSubmit.setAlpha(loading ? 0.6f : 1f);
     }
 
     private void initViews() {
@@ -51,7 +86,8 @@ public class RegisterActivity extends AppCompatActivity {
                 avatarViews[i].setOnClickListener(v -> selectAvatar(index));
             }
         }
-        selectAvatar(0);
+        // Mặc định ảnh đầu tiên; sau khi xoay màn hình thì giữ ảnh đã chọn
+        selectAvatar(selectedAvatarIndex);
     }
 
     private void selectAvatar(int index) {
@@ -182,35 +218,40 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         // Tạo tài khoản trên Firebase Authentication + hồ sơ Firestore (kiểm tra trùng username / email trên máy chủ)
-        View btnSubmit = findViewById(R.id.btn_register_submit);
-        btnSubmit.setEnabled(false);
-        btnSubmit.setAlpha(0.6f);
+        registering = true;
+        setSubmitLoading(true);
         new AuthManager(this).register(username, fullName, email, password, selectedAvatarIndex, result -> {
-            if (isFinishing()) return;
-            btnSubmit.setEnabled(true);
-            btnSubmit.setAlpha(1f);
-            if (result.status != AuthManager.Status.OK) {
-                if (AuthManager.FIELD_USERNAME.equals(result.field)) {
-                    etUsername.setError(result.message);
-                    etUsername.requestFocus();
-                } else if (AuthManager.FIELD_EMAIL.equals(result.field)) {
-                    etEmail.setError(result.message);
-                    etEmail.requestFocus();
-                } else if (AuthManager.FIELD_PASSWORD.equals(result.field)) {
-                    etPassword.setError(result.message);
-                    etPassword.requestFocus();
-                }
-                Toast.makeText(this, result.message, Toast.LENGTH_LONG).show();
-                return;
-            }
-            Toast.makeText(this, "Đăng ký thành công! Hãy đăng nhập để bắt đầu trải nghiệm", Toast.LENGTH_LONG).show();
-
-            // Trả thông tin về LoginActivity để người dùng bấm Đăng nhập
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra("registered_username", result.username);
-            resultIntent.putExtra("registered_password", password);
-            setResult(RESULT_OK, resultIntent);
-            finish();
+            registering = false;
+            // Giao kết quả cho màn Đăng ký hiện tại (có thể là Activity mới sau khi xoay màn hình)
+            RegisterActivity target = activeInstance;
+            if (target == null || target.isFinishing() || target.isDestroyed()) return;
+            target.onRegisterResult(result, password);
         });
+    }
+
+    private void onRegisterResult(AuthManager.Result result, String password) {
+        setSubmitLoading(false);
+        if (result.status != AuthManager.Status.OK) {
+            if (AuthManager.FIELD_USERNAME.equals(result.field)) {
+                etUsername.setError(result.message);
+                etUsername.requestFocus();
+            } else if (AuthManager.FIELD_EMAIL.equals(result.field)) {
+                etEmail.setError(result.message);
+                etEmail.requestFocus();
+            } else if (AuthManager.FIELD_PASSWORD.equals(result.field)) {
+                etPassword.setError(result.message);
+                etPassword.requestFocus();
+            }
+            Toast.makeText(this, result.message, Toast.LENGTH_LONG).show();
+            return;
+        }
+        Toast.makeText(this, "Đăng ký thành công! Hãy đăng nhập để bắt đầu trải nghiệm", Toast.LENGTH_LONG).show();
+
+        // Trả thông tin về LoginActivity để người dùng bấm Đăng nhập
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("registered_username", result.username);
+        resultIntent.putExtra("registered_password", password);
+        setResult(RESULT_OK, resultIntent);
+        finish();
     }
 }

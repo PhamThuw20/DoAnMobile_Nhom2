@@ -32,6 +32,13 @@ public class ProfileActivity extends BaseActivity {
     private static final int TAB_SAVED = 2;
     private int currentTab = TAB_MY_POSTS;
 
+    // Khóa lưu trạng thái khi xoay màn hình (Activity bị hủy và tạo lại)
+    private static final String STATE_CURRENT_TAB = "state_profile_current_tab";
+    private static final String STATE_OPEN_FOLLOW_DIALOG = "state_profile_open_follow_dialog";
+    private static final int FOLLOW_DIALOG_NONE = 0;
+    private static final int FOLLOW_DIALOG_FOLLOWERS = 1;
+    private static final int FOLLOW_DIALOG_FOLLOWING = 2;
+
     private TextView tvName, tvBio, tvUsername;
     private TextView tvStatPosts, tvStatFollowers, tvStatFollowing;
     private View btnStatPosts, btnStatFollowers, btnStatFollowing;
@@ -78,7 +85,21 @@ public class ProfileActivity extends BaseActivity {
         setupRecyclerView();
         loadUserProfile();
         setupListeners();
-        switchTab(TAB_MY_POSTS);
+        // Xoay màn hình: giữ nguyên tab đang xem
+        int initialTab = savedInstanceState != null
+                ? savedInstanceState.getInt(STATE_CURRENT_TAB, TAB_MY_POSTS) : TAB_MY_POSTS;
+        switchTab(isOwnProfile ? initialTab : TAB_MY_POSTS);
+
+        // Mở lại hộp thoại Người theo dõi / Đang theo dõi nếu trước khi xoay đang mở
+        int openDialog = savedInstanceState != null
+                ? savedInstanceState.getInt(STATE_OPEN_FOLLOW_DIALOG, FOLLOW_DIALOG_NONE) : FOLLOW_DIALOG_NONE;
+        if (openDialog != FOLLOW_DIALOG_NONE) {
+            getWindow().getDecorView().post(() -> {
+                if (isFinishing() || isDestroyed()) return;
+                if (openDialog == FOLLOW_DIALOG_FOLLOWING) showFollowingDialog();
+                else showFollowersDialog();
+            });
+        }
 
         // Hiển thị ngay bản đã lưu trong SQLite, rồi tải bản mới nhất từ Firebase
         dbHelper.markFeedViewed(DatabaseHelper.feedUser(targetUsername));
@@ -148,6 +169,26 @@ public class ProfileActivity extends BaseActivity {
     @Override
     protected boolean isNavRootScreen() {
         return isOwnProfile;
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(STATE_CURRENT_TAB, currentTab);
+        int openDialog = FOLLOW_DIALOG_NONE;
+        if (activeFollowDialog != null && activeFollowDialog.isShowing()) {
+            openDialog = isActiveDialogFollowingList ? FOLLOW_DIALOG_FOLLOWING : FOLLOW_DIALOG_FOLLOWERS;
+        }
+        outState.putInt(STATE_OPEN_FOLLOW_DIALOG, openDialog);
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Đóng hộp thoại đang mở để không rò rỉ cửa sổ khi Activity bị hủy (ví dụ xoay màn hình)
+        if (activeFollowDialog != null && activeFollowDialog.isShowing()) {
+            activeFollowDialog.dismiss();
+        }
+        super.onDestroy();
     }
 
     private void initViews() {
@@ -567,6 +608,18 @@ public class ProfileActivity extends BaseActivity {
         if (window == null) return;
         android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
         int width = (int) (dm.widthPixels * 0.92f);
+        // Màn hình ngang: không kéo hộp thoại quá rộng
+        int maxWidth = (int) (480 * dm.density);
+        if (width > maxWidth) width = maxWidth;
+        // Danh sách cao cố định 340dp không vừa màn hình ngang (thấp): thu lại cho vừa
+        RecyclerView rvList = window.findViewById(R.id.rv_follow_list);
+        if (rvList != null && rvList.getLayoutParams() != null) {
+            int maxListHeight = (int) (dm.heightPixels * 0.5f);
+            if (rvList.getLayoutParams().height > maxListHeight) {
+                rvList.getLayoutParams().height = maxListHeight;
+                rvList.requestLayout();
+            }
+        }
         window.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
         window.setGravity(android.view.Gravity.CENTER);
     }

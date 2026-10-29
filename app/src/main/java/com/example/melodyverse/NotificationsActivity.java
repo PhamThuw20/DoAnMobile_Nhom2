@@ -21,11 +21,18 @@ import java.util.List;
  */
 public class NotificationsActivity extends BaseActivity {
 
+    // Khóa lưu trạng thái khi xoay màn hình (Activity bị hủy và tạo lại)
+    private static final String STATE_REFRESHING = "state_notifications_refreshing";
+    private static final String STATE_DETAIL_ID = "state_notifications_detail_id";
+
     private DatabaseHelper dbHelper;
     private LinearLayout listContainer;
     private TextView tvEmpty, tvSummary, btnMarkAllRead;
     private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefresh;
     private boolean isLoading = false;
+    /** Dialog chi tiết đang mở và thông báo tương ứng (mở lại sau khi xoay màn hình). */
+    private androidx.appcompat.app.AlertDialog detailDialog;
+    private String detailNotificationId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +61,40 @@ public class NotificationsActivity extends BaseActivity {
         }
 
         renderList();
-        reload(false);
+        // Xoay màn hình: đang kéo làm mới dở thì tải tiếp (kèm vòng xoay), mở lại dialog chi tiết nếu đang mở.
+        // Vị trí cuộn của danh sách do ScrollView (có id) tự khôi phục vì danh sách đã vẽ xong từ SQLite.
+        boolean wasRefreshing = savedInstanceState != null
+                && savedInstanceState.getBoolean(STATE_REFRESHING, false);
+        reload(wasRefreshing);
+        if (savedInstanceState != null) {
+            String detailId = savedInstanceState.getString(STATE_DETAIL_ID);
+            if (detailId != null) {
+                for (NotificationModel n : dbHelper.getNotifications(me())) {
+                    if (detailId.equals(n.getId())) {
+                        showNotificationDetail(n);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(STATE_REFRESHING, swipeRefresh != null && swipeRefresh.isRefreshing());
+        if (detailDialog != null && detailDialog.isShowing()) {
+            outState.putString(STATE_DETAIL_ID, detailNotificationId);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Đóng dialog chi tiết trước khi Activity bị hủy (tránh rò rỉ cửa sổ khi xoay màn hình)
+        if (detailDialog != null && detailDialog.isShowing()) {
+            detailDialog.dismiss();
+        }
+        super.onDestroy();
     }
 
     private String me() {
@@ -229,7 +269,10 @@ public class NotificationsActivity extends BaseActivity {
             message += "\n\n(Thông báo minh họa từ dữ liệu mẫu của MelodyVerse.)";
         }
 
+        if (isFinishing() || isDestroyed()) return;
         androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this).create();
+        detailDialog = dialog;
+        detailNotificationId = n.getId();
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_notification_detail, null, false);
         dialog.setView(dialogView);
         if (dialog.getWindow() != null) {
