@@ -9,20 +9,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 
-/**
- * Trình trợ giúp Chia sẻ Giai điệu MelodyVerse (Bài 4 - Clipboard).
- * Chỉ một thao tác: sao chép đường dẫn bài hát vào bộ nhớ tạm để dán sang ứng dụng khác.
- */
+
 public class ShareHelper {
 
     public interface OnShareListener {
         void onShareSuccess(int newShareCount);
     }
 
-    /**
-     * Đường dẫn bài hát được sao chép: link nhạc trực tuyến thật của bài (nếu có),
-     * còn bài dùng nhạc mẫu thì dùng link bài hát trên MelodyVerse.
-     */
     public static String songLink(PostModel post) {
         if (post.getMusicUrl() != null && MusicService.isStreamableUrl(post.getMusicUrl())) {
             return post.getMusicUrl().trim();
