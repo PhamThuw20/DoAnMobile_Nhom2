@@ -35,6 +35,12 @@ public class CreatePostActivity extends BaseActivity {
     private android.widget.ImageView ivPrivacyIcon;
     private TextView tvPrivacyLabel;
 
+    // Trạng thái cần giữ khi xoay màn hình (Activity bị hủy và tạo lại)
+    private boolean isResolvingAudius = false;
+    private androidx.appcompat.app.AlertDialog privacyDialog;
+    private androidx.appcompat.app.AlertDialog audiusDialog;
+    private EditText etAudiusQuery;
+
     private final String[] genres = {"V-Pop", "Rap / Hip-Hop", "R&B", "Ballad", "Indie / Acoustic", "EDM"};
 
     @Override
@@ -126,46 +132,59 @@ public class CreatePostActivity extends BaseActivity {
                     1, "#DiVeNha #DenVau #RapViet", R.raw.song_sample_1));
         }
 
-        setupEditMode();
+        // Xoay màn hình: nội dung các ô nhập đã được Android tự khôi phục -> không nạp đè bài cũ lên
+        setupEditMode(savedInstanceState == null);
 
         // Nút tìm nhạc qua Audius API
         View btnSearchAudius = findViewById(R.id.btn_search_audius);
         if (btnSearchAudius != null) {
-            btnSearchAudius.setOnClickListener(v -> showAudiusSearchDialog());
+            btnSearchAudius.setOnClickListener(v -> showAudiusSearchDialog(null));
         }
 
         // Nút ĐĂNG BÀI
-        findViewById(R.id.btn_post).setOnClickListener(v -> {
-            String pasted = etMusicUrl.getText().toString().trim();
-            // Chặn đăng ngay khi liên kết sai định dạng (không gọi mạng, không gán âm thanh mẫu thay thế)
-            if (!pasted.isEmpty() && !isAcceptedMusicUrl(pasted)) {
-                showMusicUrlError(MusicService.INVALID_AUDIO_LINK_MESSAGE);
-                return;
-            }
-            if (AudiusApi.isAudiusPageLink(pasted)) {
-                // Link trang audius.co -> gọi API /resolve để lấy thông tin & link phát thật rồi mới đăng
-                v.setEnabled(false);
-                Toast.makeText(this, "Đang lấy bài hát từ Audius...", Toast.LENGTH_SHORT).show();
-                AudiusApi.resolve(pasted, new AudiusApi.Callback<AudiusApi.Track>() {
-                    @Override
-                    public void onSuccess(AudiusApi.Track track) {
-                        v.setEnabled(true);
-                        applyAudiusTrack(track, false);
-                        submitPost();
-                    }
+        findViewById(R.id.btn_post).setOnClickListener(v -> onPostClicked(v, true));
+    }
 
-                    @Override
-                    public void onError(String message) {
-                        v.setEnabled(true);
-                        showMusicUrlError(SyncManager.get(CreatePostActivity.this).isOnline()
-                                ? MusicService.INVALID_AUDIO_LINK_MESSAGE
-                                : "Cần kết nối Internet để lấy bài hát từ Audius. Vui lòng thử lại khi có mạng.");
-                    }
-                });
-                return;
-            }
-            submitPost();
-        });
+    /**
+     * Xử lý nút Đăng / Lưu.
+     * @param announce false khi tự chạy lại sau xoay màn hình (không lặp lại thông báo "Đang lấy bài hát...")
+     */
+    private void onPostClicked(View v, boolean announce) {
+        String pasted = etMusicUrl.getText().toString().trim();
+        // Chặn đăng ngay khi liên kết sai định dạng (không gọi mạng, không gán âm thanh mẫu thay thế)
+        if (!pasted.isEmpty() && !isAcceptedMusicUrl(pasted)) {
+            showMusicUrlError(MusicService.INVALID_AUDIO_LINK_MESSAGE);
+            return;
+        }
+        if (AudiusApi.isAudiusPageLink(pasted)) {
+            // Link trang audius.co -> gọi API /resolve để lấy thông tin & link phát thật rồi mới đăng
+            v.setEnabled(false);
+            isResolvingAudius = true;
+            if (announce) Toast.makeText(this, "Đang lấy bài hát từ Audius...", Toast.LENGTH_SHORT).show();
+            AudiusApi.resolve(pasted, new AudiusApi.Callback<AudiusApi.Track>() {
+                @Override
+                public void onSuccess(AudiusApi.Track track) {
+                    // Activity đã bị hủy (xoay màn hình): Activity mới tự gửi lại yêu cầu, bỏ qua kết quả này
+                    if (isFinishing() || isDestroyed()) return;
+                    isResolvingAudius = false;
+                    v.setEnabled(true);
+                    applyAudiusTrack(track, false);
+                    submitPost();
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (isFinishing() || isDestroyed()) return;
+                    isResolvingAudius = false;
+                    v.setEnabled(true);
+                    showMusicUrlError(SyncManager.get(CreatePostActivity.this).isOnline()
+                            ? MusicService.INVALID_AUDIO_LINK_MESSAGE
+                            : "Cần kết nối Internet để lấy bài hát từ Audius. Vui lòng thử lại khi có mạng.");
+                }
+            });
+            return;
+        }
+        submitPost();
     }
 
     private void submitPost() {
@@ -291,8 +310,11 @@ public class CreatePostActivity extends BaseActivity {
         if (tvMusicUrlError != null) tvMusicUrlError.setVisibility(View.GONE);
     }
 
-    /** Mở từ menu "Chỉnh sửa bài viết": nạp bài cũ vào form, đổi tiêu đề và nút thành LƯU. */
-    private void setupEditMode() {
+    /**
+     * Mở từ menu "Chỉnh sửa bài viết": nạp bài cũ vào form, đổi tiêu đề và nút thành LƯU.
+     * @param fillForm false khi Activity được tạo lại (xoay màn hình): giữ nguyên những gì người dùng đã sửa
+     */
+    private void setupEditMode(boolean fillForm) {
         String editId = getIntent() != null ? getIntent().getStringExtra(EXTRA_EDIT_POST_ID) : null;
         if (editId == null) return;
         PostModel post = dbHelper.getPostById(editId);
@@ -308,6 +330,7 @@ public class CreatePostActivity extends BaseActivity {
         TextView btnPost = findViewById(R.id.btn_post);
         if (btnPost != null) btnPost.setText("Lưu");
 
+        if (!fillForm) return;
         etCaption.setText(post.getCaption());
         etSongTitle.setText(post.getSongTitle());
         etArtistName.setText(post.getArtistName());
@@ -348,10 +371,14 @@ public class CreatePostActivity extends BaseActivity {
         finish();
     }
 
-    /** Hộp thoại tìm bài hát: gọi GET /v1/tracks/search của Audius và hiện danh sách kết quả. */
-    private void showAudiusSearchDialog() {
+    /**
+     * Hộp thoại tìm bài hát: gọi GET /v1/tracks/search của Audius và hiện danh sách kết quả.
+     * @param initialQuery từ khóa đang tìm trước khi xoay màn hình (null = mở mới) -> tự tìm lại
+     */
+    private void showAudiusSearchDialog(String initialQuery) {
         View view = getLayoutInflater().inflate(R.layout.dialog_audius_search, null);
         EditText etQuery = view.findViewById(R.id.et_audius_query);
+        etAudiusQuery = etQuery;
         TextView tvStatus = view.findViewById(R.id.tv_audius_status);
         android.widget.ListView lvResults = view.findViewById(R.id.lv_audius_results);
 
@@ -364,6 +391,13 @@ public class CreatePostActivity extends BaseActivity {
                 .setView(view)
                 .setNegativeButton("Đóng", null)
                 .create();
+        audiusDialog = dialog;
+        dialog.setOnDismissListener(d -> {
+            if (audiusDialog == dialog) {
+                audiusDialog = null;
+                etAudiusQuery = null;
+            }
+        });
 
         Runnable doSearch = () -> {
             String q = etQuery.getText().toString().trim();
@@ -375,6 +409,8 @@ public class CreatePostActivity extends BaseActivity {
             AudiusApi.search(q, new AudiusApi.Callback<java.util.List<AudiusApi.Track>>() {
                 @Override
                 public void onSuccess(java.util.List<AudiusApi.Track> tracks) {
+                    // Hộp thoại đã đóng / Activity đã bị hủy (xoay màn hình): bỏ qua kết quả
+                    if (isFinishing() || isDestroyed() || !dialog.isShowing()) return;
                     results.clear();
                     results.addAll(tracks);
                     adapter.clear();
@@ -389,6 +425,7 @@ public class CreatePostActivity extends BaseActivity {
 
                 @Override
                 public void onError(String message) {
+                    if (isFinishing() || isDestroyed() || !dialog.isShowing()) return;
                     tvStatus.setText("Lỗi khi gọi Audius API: " + message + "\nKiểm tra kết nối mạng rồi thử lại.");
                 }
             });
@@ -405,6 +442,11 @@ public class CreatePostActivity extends BaseActivity {
         });
 
         dialog.show();
+        if (initialQuery != null && !initialQuery.trim().isEmpty()) {
+            etQuery.setText(initialQuery);
+            etQuery.setSelection(initialQuery.length());
+            doSearch.run();
+        }
     }
 
     /** Điền thông tin bài hát lấy từ Audius vào form; overwrite = false thì giữ những gì người dùng đã gõ. */
@@ -447,6 +489,10 @@ public class CreatePostActivity extends BaseActivity {
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
+        privacyDialog = dialog;
+        dialog.setOnDismissListener(d -> {
+            if (privacyDialog == dialog) privacyDialog = null;
+        });
 
         View optPublic = dialogView.findViewById(R.id.option_privacy_public);
         View optPrivate = dialogView.findViewById(R.id.option_privacy_private);
@@ -508,12 +554,24 @@ public class CreatePostActivity extends BaseActivity {
         if (spinnerGenre != null) {
             outState.putInt("selected_genre_pos", spinnerGenre.getSelectedItemPosition());
         }
+        // Cảnh báo liên kết đang hiện (TextView không tự lưu chữ / trạng thái ẩn hiện)
+        if (tvMusicUrlError != null && tvMusicUrlError.getVisibility() == View.VISIBLE) {
+            outState.putString("music_url_error", tvMusicUrlError.getText().toString());
+        }
+        // Đang lấy bài hát từ Audius để đăng -> Activity mới tự gửi lại
+        outState.putBoolean("is_resolving_audius", isResolvingAudius);
+        // Hộp thoại đang mở -> mở lại sau khi xoay
+        outState.putBoolean("privacy_dialog_open", privacyDialog != null && privacyDialog.isShowing());
+        if (audiusDialog != null && audiusDialog.isShowing()) {
+            outState.putString("audius_query", etAudiusQuery != null ? etAudiusQuery.getText().toString() : "");
+        }
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        // super khôi phục chữ trong các ô nhập (TextWatcher của ô liên kết sẽ ẩn cảnh báo -> hiện lại ở dưới)
         super.onRestoreInstanceState(savedInstanceState);
-        if (savedInstanceState != null) {
+        if (savedInstanceState != null && !isFinishing()) {
             selectedRawAudio = savedInstanceState.getInt("selected_raw_audio", R.raw.song_sample_1);
             isPrivate = savedInstanceState.getBoolean("is_private", false);
             sampleMusicUrl = savedInstanceState.getString("sample_music_url");
@@ -521,7 +579,29 @@ public class CreatePostActivity extends BaseActivity {
             if (spinnerGenre != null) {
                 spinnerGenre.setSelection(savedInstanceState.getInt("selected_genre_pos", 0));
             }
+            String urlError = savedInstanceState.getString("music_url_error");
+            if (urlError != null && tvMusicUrlError != null) {
+                etMusicUrl.setError(urlError);
+                tvMusicUrlError.setText(urlError);
+                tvMusicUrlError.setVisibility(View.VISIBLE);
+            }
+            if (savedInstanceState.getBoolean("is_resolving_audius", false)) {
+                View btnPost = findViewById(R.id.btn_post);
+                if (btnPost != null) btnPost.post(() -> onPostClicked(btnPost, false));
+            } else if (savedInstanceState.getBoolean("privacy_dialog_open", false)) {
+                showPrivacySelectorDialog();
+            } else if (savedInstanceState.containsKey("audius_query")) {
+                showAudiusSearchDialog(savedInstanceState.getString("audius_query"));
+            }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Đóng hộp thoại đang mở để tránh rò rỉ cửa sổ khi xoay màn hình (Activity mới sẽ mở lại)
+        if (privacyDialog != null && privacyDialog.isShowing()) privacyDialog.dismiss();
+        if (audiusDialog != null && audiusDialog.isShowing()) audiusDialog.dismiss();
+        super.onDestroy();
     }
 
     @Override

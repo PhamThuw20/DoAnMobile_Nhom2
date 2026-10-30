@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tạo bài viết - giao diện NGANG. Giữ nguyên id + loại view như bản dọc.
+     - Thanh tiêu đề + nút Đăng cố định ở trên (luôn bấm được, không bị cuộn mất)
+     - Cột trái: chọn bài hát (Tìm nhạc trên Audius, liên kết, tên bài, nghệ sĩ, thể loại)
+     - Cột phải: người đăng + quyền riêng tư, nội dung, hashtag
+     Mỗi cột cuộn độc lập vì chiều cao màn hình ngang rất thấp. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_screen_gradient"
+    android:orientation="vertical">
+
+    <!-- Thanh tiêu đề (thu gọn) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <TextView
+            android:id="@+id/tv_create_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Bài viết mới"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_post"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_gradient_button"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:text="Đăng"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <!-- ===== Cột trái: thông tin bài hát ===== -->
+        <ScrollView
+            android:id="@+id/scroll_create_song"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:fillViewport="true"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_gradient"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <FrameLayout
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_icon_square_tonal">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_music_note"
+                                app:tint="@color/colorAccent" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="1"
+                            android:text="Thông tin bài hát"
+                            android:textColor="@color/colorTextPrimary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/btn_fill_sample_song"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="?attr/selectableItemBackground"
+                            android:padding="4dp"
+                            android:text="Điền mẫu"
+                            android:textColor="@color/colorAccent"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <!-- Chip bài mẫu: ẩn trong giao diện mới (giữ id để code không lỗi) -->
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:scrollbars="none"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/chip_sample_1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="8dp"
+                                android:background="@drawable/bg_tag_chip"
+                                android:paddingStart="12dp"
+                                android:paddingTop="6dp"
+                                android:paddingEnd="12dp"
+                                android:paddingBottom="6dp"
+                                android:text="Cắt Đôi Nỗi Sầu"
+                                android:textColor="@color/colorAccent"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/chip_sample_2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="8dp"
+                                android:background="@drawable/bg_tag_chip"
+                                android:paddingStart="12dp"
+                                android:paddingTop="6dp"
+                                android:paddingEnd="12dp"
+                                android:paddingBottom="6dp"
+                                android:text="Bình Yên (Vũ.)"
+                                android:textColor="@color/colorAccent"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/chip_sample_3"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_tag_chip"
+                                android:paddingStart="12dp"
+                                android:paddingTop="6dp"
+                                android:paddingEnd="12dp"
+                                android:paddingBottom="6dp"
+                                android:text="Đi Về Nhà (Đen Vâu)"
+                                android:textColor="@color/colorAccent"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+                    </HorizontalScrollView>
+
+                    <!-- Tìm nhạc trên Audius -->
+                    <TextView
+                        android:id="@+id/btn_search_audius"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_marginBottom="10dp"
+                        android:background="@drawable/bg_button_tonal"
+                        android:gravity="center"
+                        android:text="Tìm nhạc trên Audius"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:text="Liên kết âm thanh *"
+                        android:textColor="@color/colorTextPrimary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/et_music_url"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:layout_marginBottom="8dp"
+                        android:background="@drawable/bg_input_field"
+                        android:drawableStart="@drawable/ic_link"
+                        android:drawablePadding="10dp"
+                        android:drawableTint="@color/colorTextMuted"
+                        android:hint="Dán liên kết bài hát trên Audius"
+                        android:imeOptions="flagNoExtractUi"
+                        android:inputType="textUri"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:singleLine="true"
+                        android:textColor="@color/colorTextPrimary"
+                        android:textColorHint="@color/colorInputHint"
+                        android:textSize="15sp" />
+
+                    <!-- Cảnh báo liên kết âm thanh không hợp lệ (hiện ngay dưới ô nhập) -->
+                    <TextView
+                        android:id="@+id/tv_music_url_error"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="-2dp"
+                        android:layout_marginBottom="8dp"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp"
+                        android:textColor="@color/colorDanger"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+
+                    <!-- Tên bài hát + Nghệ sĩ trên cùng một hàng -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:baselineAligned="false"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="6dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="6dp"
+                                android:text="Tên bài hát *"
+                                android:textColor="@color/colorTextPrimary"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <EditText
+                                android:id="@+id/et_song_title"
+                                android:layout_width="match_parent"
+                                android:layout_height="46dp"
+                                android:layout_marginBottom="10dp"
+                                android:background="@drawable/bg_input_field"
+                                android:hint="Cắt Đôi Nỗi Sầu"
+                                android:imeOptions="flagNoExtractUi"
+                                android:paddingStart="14dp"
+                                android:paddingEnd="14dp"
+                                android:singleLine="true"
+                                android:textColor="@color/colorTextPrimary"
+                                android:textColorHint="@color/colorInputHint"
+                                android:textSize="15sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="6dp"
+                                android:text="Nghệ sĩ *"
+                                android:textColor="@color/colorTextPrimary"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <EditText
+                                android:id="@+id/et_artist_name"
+                                android:layout_width="match_parent"
+                                android:layout_height="46dp"
+                                android:layout_marginBottom="10dp"
+                                android:background="@drawable/bg_input_field"
+                                android:hint="Tăng Duy Tân"
+                                android:imeOptions="flagNoExtractUi"
+                                android:paddingStart="14dp"
+                                android:paddingEnd="14dp"
+                                android:singleLine="true"
+                                android:textColor="@color/colorTextPrimary"
+                                android:textColorHint="@color/colorInputHint"
+                                android:textSize="15sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="6dp"
+                        android:text="Thể loại *"
+                        android:textColor="@color/colorTextPrimary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <Spinner
+                        android:id="@+id/spinner_genre"
+                        android:layout_width="match_parent"
+                        android:layout_height="46dp"
+                        android:background="@drawable/bg_input_field"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- ===== Cột phải: người đăng, nội dung, hashtag ===== -->
+        <ScrollView
+            android:id="@+id/scroll_create_content"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:fillViewport="true"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="8dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="16dp">
+
+                <!-- Người đăng + quyền riêng tư -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_avatar_circle"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_person"
+                        app:tint="@color/colorAccent" />
+
+                    <TextView
+                        android:id="@+id/tv_author_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="Phạm Minh Thư"
+                        android:textColor="@color/colorTextPrimary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:id="@+id/btn_toggle_privacy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="28dp"
+                        android:background="@drawable/bg_chip_unselected"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="6dp">
+
+                        <ImageView
+                            android:id="@+id/iv_privacy_icon"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:src="@drawable/ic_public"
+                            app:tint="@color/colorNeonCyan" />
+
+                        <TextView
+                            android:id="@+id/tv_privacy_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="Công khai"
+                            android:textColor="@color/colorNeonCyan"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginStart="2dp"
+                            android:src="@drawable/ic_expand_more"
+                            app:tint="@color/colorTextSecondary" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Nội dung bài viết -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:text="Nội dung"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/et_caption"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_input_field"
+                    android:gravity="top|start"
+                    android:hint="Bạn đang nghe gì? Viết vài dòng cảm nhận…"
+                    android:imeOptions="flagNoExtractUi"
+                    android:lineSpacingExtra="3dp"
+                    android:maxLines="5"
+                    android:minLines="3"
+                    android:padding="14dp"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textColorHint="@color/colorInputHint"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:text="Hashtag"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/et_hashtags"
+                    android:layout_width="match_parent"
+                    android:layout_height="46dp"
+                    android:background="@drawable/bg_input_field"
+                    android:hint="#NhacViet #Trending"
+                    android:imeOptions="flagNoExtractUi"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:singleLine="true"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textColorHint="@color/colorInputHint"
+                    android:textSize="15sp" />
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</LinearLayout>
