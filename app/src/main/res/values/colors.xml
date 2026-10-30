@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#FFFFFFFF</color>
+    <color name="colorPrimary">#7C3AED</color>
+    
+    <!-- Fresh, Vibrant & Bright Pearl Palette -->
+    <color name="colorBackground">#F8FAFC</color>
+    <color name="colorBackgroundGradientTop">#F3E8FF</color>
+    <color name="colorBackgroundGradientMid">#F8FAFC</color>
+    <color name="colorBackgroundGradientBottom">#EFF6FF</color>
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorBottomNav">#FFFFFF</color>
+
+    <!-- Vibrant Accents & High-End Gradients -->
+    <color name="colorAccent">#7C3AED</color>
+    <color name="colorNeonPink">#EC4899</color>
+    <color name="colorNeonCyan">#06B6D4</color>
+    <color name="colorNeonOrange">#F97316</color>
+    <color name="colorGradientStart">#6366F1</color>
+    <color name="colorGradientMid">#8B5CF6</color>
+    <color name="colorGradientEnd">#EC4899</color>
+
+    <!-- Premium Framed Input Field Palette (Light Mode) -->
+    <color name="colorInputHint">#94A3B8</color>
+
+    <!-- Crisp Text Hierarchy -->
+    <color name="colorTextPrimary">#0F172A</color>
+    <color name="colorTextSecondary">#64748B</color>
+    <color name="colorTextMuted">#94A3B8</color>
+
+    <!-- Interactive Button Tints -->
+    <color name="colorBookmarkActive">#F59E0B</color>
+
+    <!-- Leaderboard & Music Vibes -->
+    <color name="colorGold">#F59E0B</color>
+    <color name="colorSilver">#94A3B8</color>
+    <color name="colorBronze">#D97706</color>
+
+    <!-- ===== Bổ sung cho giao diện mới (redesign) ===== -->
+    <color name="colorLine">#EEEAF7</color>
+    <color name="colorLineStrong">#E4DDF5</color>
+    <color name="colorSurfaceSunken">#F6F4FC</color>
+    <color name="colorViolet50">#F5F3FF</color>
+    <color name="colorViolet100">#EDE9FE</color>
+    <color name="colorAmber50">#FFFBEB</color>
+    <color name="colorRed50">#FEF2F2</color>
+    <color name="colorDanger">#EF4444</color>
+    <color name="colorSuccess">#10B981</color>
+    <color name="colorPlayingStart">#2E1065</color>
+    <color name="colorPlayingEnd">#6D28D9</color>
+    <!-- Nền màn mở app: luôn tối ở cả chế độ sáng và tối -->
+    <color name="splashBackground">#0B0F19</color>
+</resources>

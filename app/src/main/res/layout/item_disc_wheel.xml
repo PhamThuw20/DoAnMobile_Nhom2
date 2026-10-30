@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Một đĩa than trong vòng xoay Khám phá. Vị trí cong, độ lớn và độ mờ do DiscWheelView tính khi cuộn. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="78dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:id="@+id/layout_wheel_row"
+        android:layout_width="wrap_content"
+        android:layout_height="68dp"
+        android:layout_gravity="start|center_vertical"
+        android:background="@drawable/bg_disc_wheel_card"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="2dp"
+        android:paddingEnd="10dp">
+
+        <!-- Lớp ngoài xoay theo thao tác lướt, lớp trong tự quay khi bài đang phát -->
+        <FrameLayout
+            android:id="@+id/frame_wheel_disc"
+            android:layout_width="64dp"
+            android:layout_height="64dp">
+
+            <FrameLayout
+                android:id="@+id/frame_wheel_disc_spin"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_disc_body" />
+
+                <View
+                    android:id="@+id/view_wheel_disc_label"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center" />
+
+                <TextView
+                    android:id="@+id/tv_wheel_disc_initial"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="M"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_wheel_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxWidth="150dp"
+                android:maxLines="1"
+                android:text="Tên bài hát"
+                android:textColor="@color/colorTextPrimary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_wheel_artist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxWidth="150dp"
+                android:maxLines="1"
+                android:text="Nghệ sĩ"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btn_wheel_play"
+            android:layout_width="wrap_content"
+            android:layout_height="34dp"
+            android:layout_marginStart="14dp"
+            android:background="@drawable/bg_disc_wheel_play"
+            android:drawableStart="@drawable/ic_play"
+            android:drawablePadding="4dp"
+            android:drawableTint="@color/colorAccent"
+            android:gravity="center_vertical"
+            android:paddingStart="10dp"
+            android:paddingEnd="14dp"
+            android:text="Phát"
+            android:textColor="@color/colorAccent"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+</FrameLayout>

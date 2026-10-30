@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Galaxy Palette (Xanh tối Galaxy huyền ảo) -->
+    <color name="colorBackground">#0B0F19</color>
+    <color name="colorBackgroundGradientTop">#0A0E1A</color>
+    <color name="colorBackgroundGradientMid">#0F172A</color>
+    <color name="colorBackgroundGradientBottom">#16132F</color>
+    <color name="colorSurface">#131B2E</color>
+    <color name="colorBottomNav">#0B0F19</color>
+
+    <!-- Vibrant Galaxy Accents -->
+    <color name="colorAccent">#A78BFA</color>
+    <color name="colorNeonPink">#F472B6</color>
+    <color name="colorNeonCyan">#22D3EE</color>
+    <color name="colorNeonOrange">#FB923C</color>
+    <color name="colorGradientStart">#818CF8</color>
+    <color name="colorGradientMid">#A78BFA</color>
+    <color name="colorGradientEnd">#F472B6</color>
+
+    <!-- Framed Input Field Palette (Dark Galaxy Mode) -->
+    <color name="colorInputHint">#64748B</color>
+
+    <!-- Crisp Text Hierarchy (Chữ Trắng Sáng Nổi Bật) -->
+    <color name="colorTextPrimary">#FFFFFF</color>
+    <color name="colorTextSecondary">#CBD5E1</color>
+    <color name="colorTextMuted">#94A3B8</color>
+
+    <!-- Interactive Button Tints -->
+    <color name="colorBookmarkActive">#FBBF24</color>
+
+    <!-- Music & Equalizer -->
+    <color name="colorGold">#FBBF24</color>
+    <color name="colorSilver">#94A3B8</color>
+    <color name="colorBronze">#F97316</color>
+
+    <!-- ===== Bổ sung cho giao diện mới (redesign) ===== -->
+    <color name="colorLine">#222B44</color>
+    <color name="colorLineStrong">#2D3A56</color>
+    <color name="colorSurfaceSunken">#0F1626</color>
+    <color name="colorViolet50">#1C1838</color>
+    <color name="colorViolet100">#2A2452</color>
+    <color name="colorAmber50">#3A2A10</color>
+    <color name="colorRed50">#3A1A20</color>
+    <color name="colorDanger">#F87171</color>
+    <color name="colorSuccess">#34D399</color>
+    <color name="colorPlayingStart">#2E1065</color>
+    <color name="colorPlayingEnd">#6D28D9</color>
+</resources>

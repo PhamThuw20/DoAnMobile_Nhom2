@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Quản trị (màn hình ngang): tiêu đề + thống kê ở cột trái, tab và danh sách quản lý (tự cuộn) ở cột phải.
+     Giữ nguyên toàn bộ id như bản dọc để AdminActivity dùng chung code. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@color/colorBackground"
+    android:baselineAligned="false">
+
+    <!-- Cột trái: tiêu đề, trạng thái hệ thống, đăng xuất và thẻ thống kê -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_admin_side"
+        android:layout_width="230dp"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="16dp">
+
+            <!-- Header: tiêu đề + trạng thái hệ thống + đăng xuất -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quản trị"
+                        android:textColor="@color/colorTextPrimary"
+                        android:textStyle="bold"
+                        android:textSize="22sp" />
+
+                    <TextView
+                        android:id="@+id/tv_admin_stat_system"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="●  Đang kiểm tra"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="12sp"
+                        android:layout_marginTop="2dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/btn_admin_top_logout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="34dp"
+                    android:text="Đăng xuất"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="13sp"
+                    android:gravity="center"
+                    android:background="@drawable/bg_admin_btn_outline"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp" />
+            </LinearLayout>
+
+            <!-- Thống kê: 3 hàng xếp dọc trong một thẻ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_admin_card"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Bài đăng"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tv_admin_stat_posts"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="@color/colorTextPrimary"
+                        android:textStyle="bold"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorLine" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Người dùng"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tv_admin_stat_users"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="@color/colorTextPrimary"
+                        android:textStyle="bold"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/colorLine" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Vi phạm"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tv_admin_stat_reports"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="@color/colorDanger"
+                        android:textStyle="bold"
+                        android:textSize="18sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Cột phải: tab + danh sách đang chọn (danh sách tự cuộn, dùng trọn chiều cao còn lại) -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp">
+
+        <!-- Tabs -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_admin_segmented"
+            android:padding="3dp"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:id="@+id/tab_admin_posts"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Bài hát"
+                android:textColor="@color/colorTextPrimary"
+                android:textStyle="bold"
+                android:textSize="13sp"
+                android:gravity="center"
+                android:background="@drawable/bg_admin_tab_selected" />
+
+            <TextView
+                android:id="@+id/tab_admin_users"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Người dùng"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="13sp"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/tab_admin_reports"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Vi phạm"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="13sp"
+                android:gravity="center" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_admin_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Không có dữ liệu hiển thị"
+            android:textColor="@color/colorTextMuted"
+            android:textSize="13sp"
+            android:textAlignment="center"
+            android:padding="20dp"
+            android:visibility="gone" />
+
+        <!-- Chỉ một trong ba khu vực dưới đây hiển thị tại một thời điểm, khu vực đó chiếm hết chiều cao -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_admin_posts"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="12dp" />
+
+        <LinearLayout
+            android:id="@+id/layout_admin_users_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/et_admin_search_users"
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:background="@drawable/bg_admin_search"
+                android:hint="Tìm theo tên hoặc username"
+                android:textColorHint="@color/colorInputHint"
+                android:textColor="@color/colorTextPrimary"
+                android:textSize="13sp"
+                android:drawableStart="@drawable/ic_search"
+                android:drawablePadding="10dp"
+                android:drawableTint="@color/colorTextMuted"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:singleLine="true"
+                android:imeOptions="actionSearch|flagNoExtractUi"
+                android:layout_marginBottom="10dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_admin_users"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:paddingBottom="12dp" />
+        </LinearLayout>
+
+        <!-- Bài viết vi phạm: các bài bị thành viên báo cáo, Quản trị viên ẩn / xóa / bỏ qua -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_admin_reports"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="12dp"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>

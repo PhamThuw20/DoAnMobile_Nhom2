@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@drawable/bg_dialog_logout"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="24dp"
+    android:elevation="12dp">
+
+    <!-- Icon Thông báo trong vòng tròn sinh động -->
+    <FrameLayout
+        android:id="@+id/frame_notif_icon_container"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:background="@drawable/bg_icon_tonal"
+        android:layout_marginBottom="12dp">
+
+        <ImageView
+            android:id="@+id/iv_notif_detail_icon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_notifications"
+            android:layout_gravity="center"
+            app:tint="@color/colorAccent" />
+    </FrameLayout>
+
+    <!-- Tag loại thông báo -->
+    <TextView
+        android:id="@+id/tv_notif_detail_category"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tương tác"
+        android:textColor="@color/colorAccent"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:background="@drawable/bg_tag_chip"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp"
+        android:layout_marginBottom="10dp" />
+
+    <!-- Tiêu đề thông báo -->
+    <TextView
+        android:id="@+id/tv_notif_detail_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="HIEUTHUHAI đã thích bài viết của bạn"
+        android:textColor="@color/colorTextPrimary"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Nội dung chi tiết thông báo -->
+    <TextView
+        android:id="@+id/tv_notif_detail_msg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bài chia sẻ “Không Thể Say” của bạn đã có hơn 500 lượt thích."
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="15sp"
+        android:gravity="center"
+        android:lineSpacingExtra="3dp"
+        android:layout_marginBottom="10dp" />
+
+    <!-- Thời gian thông báo -->
+    <TextView
+        android:id="@+id/tv_notif_detail_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10 phút trước"
+        android:textColor="@color/colorInputHint"
+        android:textSize="12sp"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Nút hành động Đóng và Xem chi tiết -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_notif_close"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Đóng"
+            android:textAllCaps="false"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_button_secondary"
+            android:layout_marginEnd="8dp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btn_notif_action"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Xem chi tiết"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_gradient_button"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+</LinearLayout>
