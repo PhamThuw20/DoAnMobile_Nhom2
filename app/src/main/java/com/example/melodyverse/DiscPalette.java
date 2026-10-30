@@ -1,9 +1,5 @@
 package com.example.melodyverse;
-
-/**
- * Bảng màu bìa đĩa dùng chung cho vòng xoay Khám phá và màn Đang phát.
- * Mỗi bài luôn nhận cùng một cặp màu (tính từ id bài), giống bộ ảnh bìa bg_cover_1..6.
- */
+ 
 public final class DiscPalette {
 
     private static final int[][] COLORS = {
