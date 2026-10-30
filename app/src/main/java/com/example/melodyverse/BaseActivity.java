@@ -23,7 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 
 /**
  * Activity cơ sở kế thừa cho toàn bộ màn hình (Bài 2 - Activities & Bài 6 - Broadcast & Services).
@@ -32,8 +32,10 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 public abstract class BaseActivity extends AppCompatActivity implements SyncManager.Listener {
 
     private static final String EXTRA_TAB_SWITCH = "EXTRA_TAB_SWITCH";
+    private static final String STATE_NOW_PLAYING_OPEN = "state_now_playing_open";
 
-    protected BottomNavigationView bottomNavigationView;
+    /** Màn dọc: thanh điều hướng dưới (BottomNavigationView). Màn ngang: thanh điều hướng dọc (NavigationRailView). */
+    protected NavigationBarView bottomNavigationView;
     protected View miniPlayerContainer;
     protected View frameMiniPlayerArt;
     protected ImageView ivMiniPlayerPlay;
@@ -210,6 +212,20 @@ public abstract class BaseActivity extends AppCompatActivity implements SyncMana
 
         // Đảm bảo tab hiện tại được highlight chính xác ngay khi khởi tạo
         syncBottomNavSelection();
+
+        // Xoay màn hình làm Activity được tạo lại: mở lại màn Đang phát nếu trước đó đang mở
+        if (savedInstanceState != null && savedInstanceState.getBoolean(STATE_NOW_PLAYING_OPEN, false)
+                && MusicService.hasTrackLoaded) {
+            getWindow().getDecorView().post(() -> {
+                if (!isFinishing() && !isDestroyed()) showNowPlayingDialog();
+            });
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(STATE_NOW_PLAYING_OPEN, nowPlayingDialog != null && nowPlayingDialog.isShowing());
     }
 
     /** Người dùng bấm lại tab của chính màn hình đang mở. Màn hình gốc override để cuộn lên đầu / làm mới. */
@@ -723,15 +739,6 @@ public abstract class BaseActivity extends AppCompatActivity implements SyncMana
         FrameLayout contentFrame = findViewById(R.id.content_frame);
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         inflater.inflate(layoutResID, contentFrame, true);
-    }
-
-    @Override
-    public void onConfigurationChanged(android.content.res.Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        // Làm mới viền cong bo góc của thanh Mini Player khi xoay giữa dọc và ngang
-        if (miniPlayerContainer != null) {
-            miniPlayerContainer.post(() -> miniPlayerContainer.invalidateOutline());
-        }
     }
 
     @Override

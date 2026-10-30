@@ -54,6 +54,24 @@ public class MainActivity extends BaseActivity {
     private boolean queuedUserInitiated = false;
     private androidx.core.widget.NestedScrollView nestedScrollMain;
     private View layoutSearchBarRef;
+    // Lượt tải hiện tại do người dùng chủ động (vuốt / bấm lại Home) -> xoay màn hình thì tải lại đúng kiểu đó
+    private boolean currentReloadUserInitiated = false;
+
+    // Bước gợi ý nghệ sĩ chưa được trả lời (xoay màn hình thì hiện lại, không bị mất bước này)
+    private boolean artistSuggestionsPending = false;
+    private androidx.appcompat.app.AlertDialog artistDialog;
+
+    // Khóa lưu trạng thái khi Activity bị tạo lại (xoay màn hình)
+    private static final String KEY_GENRE_LABEL = "active_genre_label";
+    private static final String KEY_GENRE_KEYWORDS = "active_genre_keywords";
+    private static final String KEY_SEARCH_BAR_VISIBLE = "search_bar_visible";
+    private static final String KEY_HAS_MORE_HOME = "has_more_home";
+    private static final String KEY_OFFLINE_MODE = "offline_mode";
+    private static final String KEY_WAS_RELOADING = "was_reloading";
+    private static final String KEY_RELOAD_USER_INITIATED = "reload_user_initiated";
+    private static final String KEY_ARTIST_PENDING = "artist_suggestions_pending";
+    private static final String KEY_FEED_ANCHOR_POS = "feed_anchor_pos";
+    private static final String KEY_FEED_ANCHOR_OFFSET = "feed_anchor_offset";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +84,9 @@ public class MainActivity extends BaseActivity {
         NotificationHelper.createNotificationChannel(this);
 
         // Android 13+ yêu cầu xin quyền hiển thị thông báo lúc chạy (Runtime Permission)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU
+        // Chỉ hỏi khi mở màn hình lần đầu, không hỏi lại mỗi lần xoay màn hình
+        if (savedInstanceState == null
+                && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU
                 && androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
                 != android.content.pm.PackageManager.PERMISSION_GRANTED) {
             androidx.core.app.ActivityCompat.requestPermissions(this,
@@ -174,6 +194,11 @@ public class MainActivity extends BaseActivity {
         // Khởi tạo các chip lọc thể loại âm nhạc nhanh
         setupGenreFilterChips();
 
+        // Xoay màn hình: khôi phục bộ lọc thể loại, thanh tìm kiếm và trạng thái tải trước khi đọc SQLite
+        if (savedInstanceState != null) {
+            restoreFeedState(savedInstanceState, layoutSearchBar);
+        }
+
         // Khởi tạo danh sách Bảng tin (Feed)
         if (rvFeed != null) {
             rvFeed.setLayoutManager(new LinearLayoutManager(this));
@@ -202,17 +227,73 @@ public class MainActivity extends BaseActivity {
             rvFeed.setAdapter(postAdapter);
         }
 
-        handleIntentSearchQuery(getIntent());
+        // Từ khóa truyền qua Intent chỉ xử lý một lần (xoay màn hình thì giữ từ khóa người dùng đang gõ)
+        if (savedInstanceState == null) handleIntentSearchQuery(getIntent());
 
         // Hiển thị ngay dữ liệu đã lưu trong SQLite, sau đó tải bản mới nhất từ Firebase
         refreshFeed();
-        reloadFromServer(true, false);
+        if (savedInstanceState == null) {
+            reloadFromServer(true, false);
+        } else if (savedInstanceState.getBoolean(KEY_WAS_RELOADING, false)) {
+            // Đang tải dở thì bị xoay màn hình: kết quả trả về Activity cũ bị bỏ qua -> tải lại một lần
+            reloadFromServer(true, savedInstanceState.getBoolean(KEY_RELOAD_USER_INITIATED, false));
+        }
+        // Xoay màn hình bình thường: dữ liệu đã có sẵn trong SQLite, không tải lại từ Firebase
 
         // Tài khoản mới: hỏi có muốn theo dõi nghệ sĩ gợi ý không (không tự động theo dõi ai)
         if (getIntent().getBooleanExtra(EXTRA_SHOW_ARTIST_SUGGESTIONS, false)) {
             getIntent().removeExtra(EXTRA_SHOW_ARTIST_SUGGESTIONS);
             if (savedInstanceState == null && rvFeed != null) rvFeed.post(this::showArtistSuggestions);
+        } else if (savedInstanceState != null && savedInstanceState.getBoolean(KEY_ARTIST_PENDING, false)
+                && rvFeed != null) {
+            // Hộp thoại gợi ý đang mở / đang tải khi xoay màn hình -> hiện lại cho người dùng trả lời
+            rvFeed.post(this::showArtistSuggestions);
         }
+    }
+
+    /** Khôi phục bộ lọc + cờ trạng thái đã lưu trong onSaveInstanceState (gọi trước refreshFeed). */
+    private void restoreFeedState(Bundle state, View layoutSearchBar) {
+        activeGenreLabel = state.getString(KEY_GENRE_LABEL, "");
+        String[] keywords = state.getStringArray(KEY_GENRE_KEYWORDS);
+        activeGenreKeywords = keywords != null ? keywords : new String[0];
+        if (!activeGenreLabel.isEmpty()) {
+            for (TextView chip : genreChips) {
+                if (chip != null && activeGenreLabel.equals(chip.getText().toString())) {
+                    highlightGenreChip(chip);
+                    break;
+                }
+            }
+        }
+        hasMoreHome = state.getBoolean(KEY_HAS_MORE_HOME, true);
+        isOfflineMode = state.getBoolean(KEY_OFFLINE_MODE, false);
+        if (layoutSearchBar != null && state.getBoolean(KEY_SEARCH_BAR_VISIBLE, false)) {
+            layoutSearchBar.setVisibility(View.VISIBLE);
+        }
+        restoreFeedScroll(state.getInt(KEY_FEED_ANCHOR_POS, -1), state.getInt(KEY_FEED_ANCHOR_OFFSET, 0));
+    }
+
+    /**
+     * Cuộn lại đúng bài viết đang xem trước khi xoay. Không dùng scrollY thô vì bố cục dọc / ngang
+     * khác nhau (chip thể loại nằm trên danh sách ở màn dọc, nằm ở cột trái ở màn ngang).
+     */
+    private void restoreFeedScroll(int anchorPos, int anchorOffset) {
+        if (anchorPos < 0 || rvFeed == null || nestedScrollMain == null) return;
+        rvFeed.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+            private int attempts = 0;
+
+            @Override
+            public void onGlobalLayout() {
+                RecyclerView.LayoutManager lm = rvFeed.getLayoutManager();
+                View anchor = lm != null ? lm.findViewByPosition(anchorPos) : null;
+                // Danh sách chưa vẽ xong: đợi thêm vài lượt layout
+                if (anchor == null && ++attempts < 5 && anchorPos < postList.size()) return;
+                rvFeed.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                if (anchor != null) {
+                    int y = Math.max(0, rvFeed.getTop() + anchor.getTop() + anchorOffset);
+                    nestedScrollMain.post(() -> nestedScrollMain.scrollTo(0, y));
+                }
+            }
+        });
     }
 
     /**
@@ -229,6 +310,7 @@ public class MainActivity extends BaseActivity {
             return;
         }
         isReloading = true;
+        currentReloadUserInitiated = userInitiated;
         if (userInitiated && swipeRefresh != null) swipeRefresh.setRefreshing(true);
         String label = activeGenreLabel;
         String[] keywords = activeGenreKeywords;
@@ -294,6 +376,7 @@ public class MainActivity extends BaseActivity {
     private void showArtistSuggestions() {
         String me = SessionManager.getCurrentUsername(this);
         if (me == null || isFinishing()) return;
+        artistSuggestionsPending = true;
         sync.loadSuggestedUsers(me, 8, users -> {
             if (isFinishing() || isDestroyed()) return;
             List<UserModel> candidates = new ArrayList<>();
@@ -301,6 +384,7 @@ public class MainActivity extends BaseActivity {
                 if (!dbHelper.isUserFollowed(me, u.getUsername())) candidates.add(u);
             }
             if (candidates.isEmpty()) {
+                artistSuggestionsPending = false;
                 AuthManager.markOnboardingDone(this, me);
                 return;
             }
@@ -340,10 +424,12 @@ public class MainActivity extends BaseActivity {
                 .setView(view)
                 .setCancelable(false)
                 .create();
+        artistDialog = dialog;
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
         }
         btnSkip.setOnClickListener(v -> {
+            artistSuggestionsPending = false;
             AuthManager.markOnboardingDone(this, me);
             dialog.dismiss();
             Toast.makeText(this, "Bạn có thể theo dõi thành viên khác bất cứ lúc nào từ trang cá nhân của họ.", Toast.LENGTH_LONG).show();
@@ -353,6 +439,7 @@ public class MainActivity extends BaseActivity {
             for (String artist : selected) {
                 if (dbHelper.followUser(me, artist)) count++;
             }
+            artistSuggestionsPending = false;
             AuthManager.markOnboardingDone(this, me);
             dialog.dismiss();
             Toast.makeText(this, "Đã theo dõi " + count + " thành viên!", Toast.LENGTH_SHORT).show();
@@ -652,6 +739,47 @@ public class MainActivity extends BaseActivity {
         if (etSearch != null) {
             outState.putString("search_query", etSearch.getText().toString());
         }
+        outState.putString(KEY_GENRE_LABEL, activeGenreLabel);
+        outState.putStringArray(KEY_GENRE_KEYWORDS, activeGenreKeywords);
+        outState.putBoolean(KEY_SEARCH_BAR_VISIBLE,
+                layoutSearchBarRef != null && layoutSearchBarRef.getVisibility() == View.VISIBLE);
+        outState.putBoolean(KEY_HAS_MORE_HOME, hasMoreHome);
+        outState.putBoolean(KEY_OFFLINE_MODE, isOfflineMode);
+        outState.putBoolean(KEY_WAS_RELOADING, isReloading || reloadQueued);
+        outState.putBoolean(KEY_RELOAD_USER_INITIATED, currentReloadUserInitiated || queuedUserInitiated);
+        outState.putBoolean(KEY_ARTIST_PENDING, artistSuggestionsPending);
+        saveFeedAnchor(outState);
+    }
+
+    /**
+     * Ghi lại bài viết đang nằm ở đầu vùng nhìn thấy (vị trí trong adapter + độ lệch).
+     * RecyclerView nằm trong NestedScrollView nên scrollY tự lưu không còn khớp khi đổi bố cục dọc / ngang.
+     */
+    private void saveFeedAnchor(Bundle outState) {
+        if (rvFeed == null || nestedScrollMain == null || rvFeed.getVisibility() != View.VISIBLE) return;
+        int scrollY = nestedScrollMain.getScrollY();
+        int rvTop = rvFeed.getTop();
+        if (scrollY <= rvTop) return;
+        for (int i = 0; i < rvFeed.getChildCount(); i++) {
+            View child = rvFeed.getChildAt(i);
+            if (rvTop + child.getBottom() > scrollY) {
+                int pos = rvFeed.getChildAdapterPosition(child);
+                if (pos != RecyclerView.NO_POSITION) {
+                    outState.putInt(KEY_FEED_ANCHOR_POS, pos);
+                    outState.putInt(KEY_FEED_ANCHOR_OFFSET, scrollY - (rvTop + child.getTop()));
+                }
+                return;
+            }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Đóng hộp thoại gợi ý nghệ sĩ để tránh rò rỉ cửa sổ khi xoay màn hình (Activity mới sẽ hiện lại)
+        if (artistDialog != null && artistDialog.isShowing()) {
+            artistDialog.dismiss();
+        }
+        super.onDestroy();
     }
 
     @Override
