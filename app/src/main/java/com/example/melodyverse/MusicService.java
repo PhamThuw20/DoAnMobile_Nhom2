@@ -12,10 +12,6 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import java.util.List;
 
-/**
- * Dịch vụ phát nhạc nền (Bài 6 - 07.4 Services & 07.3 Broadcasts).
- * Cho phép duy trì âm thanh khi người dùng chuyển qua lại các màn hình.
- */
 public class MusicService extends Service implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 
     private static final String TAG = "MusicService";
@@ -27,12 +23,9 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     public static final String ACTION_STOP = "com.example.melodyverse.ACTION_STOP";
     public static final String ACTION_NEXT = "com.example.melodyverse.ACTION_NEXT";
     public static final String ACTION_PREVIOUS = "com.example.melodyverse.ACTION_PREVIOUS";
-    /** Bài viết của bài hát vừa bị xóa / ẩn trên hệ thống: dừng hẳn, đóng thông báo và thu hồi Mini Player. */
     public static final String ACTION_STOP_UNAVAILABLE = "com.example.melodyverse.ACTION_STOP_UNAVAILABLE";
     public static final String ACTION_SEEK = "com.example.melodyverse.ACTION_SEEK";
-    /** Đăng xuất: dừng hẳn và xóa bài đang phát, danh sách phát, lịch sử nghe của tài khoản cũ. */
     public static final String ACTION_RESET = "com.example.melodyverse.ACTION_RESET";
-
     public static final String ACTION_MUSIC_STATUS_CHANGED = "com.example.melodyverse.MUSIC_STATUS_CHANGED";
     public static final String EXTRA_IS_PLAYING = "is_playing";
     public static final String EXTRA_SONG_TITLE = "song_title";
@@ -41,20 +34,15 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     public static final String EXTRA_DURATION = "duration";
     public static final String EXTRA_POSITION = "position";
     public static final String EXTRA_SEEK_POSITION = "seek_position";
-
     public static final String EXTRA_MUSIC_URL = "music_url";
     public static final String EXTRA_RAW_RES = "raw_res";
     public static final String EXTRA_GENRE = "genre";
-    /** Màn hình gọi phát đã tự hiện thông báo (ví dụ báo ngoại tuyến) nên Service không báo lại. */
     public static final String EXTRA_ANNOUNCED = "announced";
-    /** Thông báo cần hiện cho người dùng kèm Broadcast trạng thái (BaseActivity hiện Toast). */
     public static final String EXTRA_MESSAGE = "message";
 
-    /** Thông báo khi bấm nghe bài hát trực tuyến lúc điện thoại không có Internet. */
     public static final String OFFLINE_STREAM_MESSAGE =
             "Bạn đang ngoại tuyến. Vui lòng kết nối Internet để nghe bài hát trực tuyến này";
 
-    // Trạng thái dùng chung
     public static boolean isPlaying = false;
     public static boolean hasTrackLoaded = false;
     public static String currentSongTitle = "50 Cuộc Gọi Nhỡ";
@@ -65,36 +53,22 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     public static String currentMusicUrl = null;
     public static int currentDuration = 0;
     public static int currentPosition = 0;
-    /** Đang tải nhạc trực tuyến (chưa phát được) — giao diện hiện "Đang tải", KHÔNG hiện "Đang phát". */
     public static boolean isBuffering = false;
 
-    // Chế độ phát (điều khiển từ Now Playing Dialog). Hai chế độ loại trừ nhau, cả hai tắt = phát tuần tự.
     public static boolean isShuffleEnabled = false;
     public static boolean isRepeatEnabled = false;
 
-    /**
-     * Danh sách phát đang dùng (ví dụ Danh sách nhạc đã lưu): khi có, bài tiếp theo chỉ lấy trong danh sách này
-     * cho tới khi hết danh sách. null = phát theo Bảng tin như bình thường.
-     */
     private static List<PostModel> playQueue = null;
     private static String playQueueName = null;
 
-    /** Bài đã phát được quá ngưỡng này (ms) thì bấm "Bài trước" lần đầu sẽ phát lại từ đầu bài. */
     public static final int PREVIOUS_RESTART_THRESHOLD_MS = 3000;
-    /** Lịch sử bài đã nghe (dùng cho "Bài trước" khi đang phát ngẫu nhiên). */
     private static final java.util.ArrayDeque<String> playHistory = new java.util.ArrayDeque<>();
     private static final int MAX_HISTORY = 50;
 
-    /** true = bấm "Bài trước" chỉ tua lại đầu bài hiện tại; false = chuyển hẳn về bài phía trước. */
     public static boolean shouldRestartOnPrevious(int positionMs) {
         return positionMs > PREVIOUS_RESTART_THRESHOLD_MS;
     }
 
-    /**
-     * Vị trí bài phía trước trong danh sách phát tuần tự.
-     * @param wrap true = phát theo Bảng tin (bài đầu quay vòng về bài cuối), false = danh sách nhạc đã lưu (dừng ở bài đầu)
-     * @return -1 nếu không có bài phía trước
-     */
     static int previousIndex(int currentIndex, int size, boolean wrap) {
         if (size <= 0 || currentIndex < 0) return -1;
         if (currentIndex > 0) return currentIndex - 1;
@@ -111,12 +85,9 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         if (enabled) isShuffleEnabled = false;
     }
 
-    /** true nếu đang phát trong danh sách {@code name}. */
     public static boolean isPlayingQueue(String name) {
         return playQueue != null && name != null && name.equals(playQueueName);
     }
-
-    // MediaPlayer đang phát — dùng để đọc vị trí & thời lượng thật của bài hát
     private static MediaPlayer activePlayer;
     private static final java.util.Random random = new java.util.Random();
 
@@ -232,17 +203,13 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         return (u.startsWith("http://") || u.startsWith("https://")) && !u.contains("example.com");
     }
 
-    /** Cảnh báo khi người dùng nhập liên kết âm thanh sai định dạng / không được hỗ trợ lúc đăng bài. */
     public static final String INVALID_AUDIO_LINK_MESSAGE =
             "Đường dẫn bài hát không hợp lệ. Vui lòng nhập link bài hát hợp lệ hoặc bấm Tìm nhạc trên Audius";
 
     private static final String[] AUDIO_FILE_EXTENSIONS = {
             ".mp3", ".wav", ".ogg", ".oga", ".m4a", ".aac", ".flac", ".opus", ".weba", ".webm"};
 
-    /**
-     * Link trang bài hát trên Audius (audius.co hoặc www.audius.co, có hoặc không có http(s)://):
-     * đúng 2 phần {nghệ sĩ}/{bài hát}. Dùng chung cho bước kiểm tra link và bước gọi API /resolve.
-     */
+
     public static boolean isAudiusPageLink(String url) {
         if (url == null) return false;
         String u = url.trim().toLowerCase(java.util.Locale.ROOT);
@@ -259,14 +226,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             return false;
         }
     }
-
-    /**
-     * Liên kết âm thanh người dùng tự nhập có thuộc nguồn phát được hỗ trợ không:
-     * 1. Link chia sẻ bài hát trên Audius: audius.co/{nghệ sĩ}/{bài hát}
-     * 2. Link phát của Audius API: https://...audius.co/v1/tracks/{id}/stream
-     * 3. File âm thanh trực tiếp: http(s)://tên-miền/.../bai-hat.mp3 (wav, ogg, m4a, aac, flac, opus...)
-     * Chữ tùy tiện (ví dụ "acb.com"), link thiếu http(s) hoặc link mẫu example.com đều không hợp lệ.
-     */
     public static boolean isSupportedAudioLink(String url) {
         if (url == null) return false;
         String raw = url.trim();
@@ -298,35 +257,24 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         }
         return false;
     }
-
-    /**
-     * @param announced true nếu màn hình gọi đã tự báo cho người dùng (không báo lại khi ngoại tuyến)
-     */
     private void playTrack(int rawRes, String url, boolean announced) {
         currentMusicUrl = url;
         if (isStreamableUrl(url)) {
             if (!SyncManager.get(this).isOnline()) {
-                // Không tự chuyển sang bài mẫu khác: dừng ở trạng thái tạm dừng (nút phát về Play) và báo ngoại tuyến.
-                // Thông báo đi kèm Broadcast để màn hình đang mở hiện Toast (Toast từ Service có thể bị hệ thống bỏ qua)
+
                 streamFailed(announced ? null : OFFLINE_STREAM_MESSAGE);
                 return;
             }
             playStream(url.trim());
             return;
         }
-        // File âm thanh mẫu đóng gói trong APK: phát được cả khi offline
         playRaw(rawRes);
     }
 
-    /** true nếu bài là nhạc trực tuyến mà điện thoại đang không có Internet (không thể phát). */
     public static boolean isOfflineStream(Context context, PostModel post) {
         return isStreamableUrl(post.getMusicUrl()) && !SyncManager.get(context).isOnline();
     }
 
-    /**
-     * Thông báo khi người dùng bấm phát: một cấu trúc ngắn gọn, đồng nhất cho mọi bài hát "Đang phát: [Tên bài hát]".
-     * Riêng nhạc trực tuyến lúc không có Internet thì báo ngoại tuyến (không thể phát).
-     */
     public static String startMessage(Context context, PostModel post) {
         if (isOfflineStream(context, post)) return OFFLINE_STREAM_MESSAGE;
         return nowPlayingMessage(post.getSongTitle());
@@ -336,12 +284,10 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         return "Đang phát: " + (songTitle != null ? songTitle.trim() : "");
     }
 
-    /** true nếu bài hiện tại phát trực tuyến (cần mạng). */
     public static boolean isStreamingCurrent() {
         return isStreamableUrl(currentMusicUrl);
     }
 
-    /** Phát trực tuyến từ link người dùng nhập. Lỗi / mất mạng: dừng và thông báo (không phát bài khác thay thế). */
     private void playStream(String url) {
         releaseMediaPlayer();
         isPlaying = false;
@@ -384,8 +330,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             streamFailed("Link nhạc trực tuyến không hợp lệ, không thể phát.");
         }
     }
-
-    /** Nhạc trực tuyến không tải / không phát tiếp được: về trạng thái tạm dừng, đồng bộ mini player + notification. */
     private void streamFailed(String message) {
         releaseMediaPlayer();
         isPlaying = false;
@@ -402,7 +346,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         isBuffering = false;
 
         try {
-            // Nạp từ res/raw để nghe mượt mà không delay
             if (rawRes != 0) {
                 mediaPlayer = MediaPlayer.create(this, rawRes);
             } else {
@@ -410,7 +353,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             }
 
             if (mediaPlayer != null) {
-                // Không lặp vô hạn: khi hết bài, onCompletion() xử lý Lặp lại / Tự động chuyển bài
                 mediaPlayer.setLooping(false);
                 mediaPlayer.setOnCompletionListener(this);
                 mediaPlayer.setOnErrorListener(this);
@@ -452,8 +394,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             playTrack(currentRawRes, currentMusicUrl, false);
         }
     }
-
-    /** Bài viết bị gỡ bỏ / ẩn: dừng phát, đóng thông báo trên thanh trạng thái và ẩn Mini Player. */
     private void stopUnavailable() {
         stopTrack();
         hasTrackLoaded = false;
@@ -479,13 +419,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         NotificationHelper.cancelMusicNotification(this);
     }
 
-    /**
-     * Chuyển sang bài tiếp theo.
-     * Đang phát một danh sách (Danh sách nhạc đã lưu): chỉ lấy bài trong danh sách đó, hết danh sách thì dừng.
-     * Không có danh sách: lấy bài tiếp theo trong Bảng tin (SQLite), bỏ qua bài riêng tư của người khác.
-     *
-     * @param manual true nếu người dùng bấm nút Tiếp theo, false nếu tự chuyển khi hết bài
-     */
     private void playNextTrack(boolean manual) {
         List<PostModel> posts = currentPlayList();
         if (posts.isEmpty()) {
@@ -496,7 +429,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         int currentIndex = indexOfPost(posts, currentPostId);
         int nextIndex;
         if (isShuffleEnabled && posts.size() > 1) {
-            // Phát ngẫu nhiên: chọn một bài khác bài đang phát (trong đúng phạm vi đang phát)
             do {
                 nextIndex = random.nextInt(posts.size());
             } while (nextIndex == currentIndex);
@@ -514,7 +446,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         playPost(posts.get(nextIndex));
     }
 
-    /** Phạm vi đang phát: danh sách nhạc đã lưu (nếu có), ngược lại là Bảng tin (bỏ bài riêng tư của người khác). */
     private List<PostModel> currentPlayList() {
         if (playQueue != null) return playQueue;
         List<PostModel> posts = new java.util.ArrayList<>();
@@ -526,11 +457,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         return posts;
     }
 
-    /**
-     * Nút "Bài trước" (đối xứng với nút "Bài tiếp theo"):
-     * bài đang nghe đã phát được một đoạn (> 3 giây) thì tua lại đầu bài; bấm tiếp sẽ về hẳn bài phía trước.
-     * Đang phát ngẫu nhiên: quay về bài vừa nghe trước đó.
-     */
     private void playPreviousTrack() {
         if (mediaPlayer != null && mediaPlayer == activePlayer && shouldRestartOnPrevious(getCurrentPosition())) {
             restartCurrent();
@@ -584,12 +510,10 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         }
         return -1;
     }
-
     private void playPost(PostModel next) {
         playPost(next, true);
     }
 
-    /** @param forward true = tiến tới bài mới (ghi bài đang nghe vào lịch sử), false = lùi về bài trước */
     private void playPost(PostModel next, boolean forward) {
         if (forward) rememberInHistory(currentPostId);
         currentSongTitle = next.getSongTitle();
@@ -600,10 +524,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         playTrack(currentRawRes, next.getMusicUrl(), false);
     }
 
-    /**
-     * Hết danh sách phát. Bấm Tiếp ở bài cuối: giữ nguyên bài đang nghe.
-     * Tự hết bài cuối: dừng và quay về đầu bài (bấm Play sẽ nghe lại).
-     */
     private void finishQueue(String message) {
         if (!isPlaying && mediaPlayer != null) {
             try {
@@ -618,9 +538,7 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         broadcastStatus(null);
     }
 
-    /** @param message thông báo cần hiện cho người dùng (null = không có) */
     private void broadcastStatus(String message) {
-        // Thời lượng & vị trí thật của file âm thanh đang phát
         currentDuration = getDuration();
         currentPosition = getCurrentPosition();
         Intent intent = new Intent(ACTION_MUSIC_STATUS_CHANGED);
@@ -644,11 +562,9 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        // Đã tạm dừng (bởi người dùng / mất mạng) ngay sát cuối bài thì không tự phát tiếp
         if (!isPlaying) {
             return;
         }
-        // Nhạc trực tuyến "kết thúc" sớm do mất mạng (hết bộ đệm): không tự chuyển sang bài khác
         if (isStreamingCurrent() && !SyncManager.get(this).isOnline()) {
             int dur = getDuration();
             int pos = getCurrentPosition();
@@ -658,7 +574,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             }
         }
         if (isRepeatEnabled) {
-            // Lặp lại bài hát hiện tại
             mp.seekTo(0);
             mp.start();
             isPlaying = true;
@@ -666,12 +581,10 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
             return;
         }
         boolean autoNext = prefs.getBoolean("auto_next", true);
-        // Đang nghe một danh sách (Danh sách nhạc đã lưu) thì luôn phát tiếp bài kế trong danh sách
         if (autoNext || playQueue != null) {
-            isPlaying = false; // bài vừa kết thúc; bài kế tiếp sẽ bật lại trạng thái đang phát
+            isPlaying = false;
             playNextTrack(false);
         } else {
-            // Dừng ở cuối bài, quay về đầu để bấm Play nghe lại
             isPlaying = false;
             mp.seekTo(0);
             broadcastStatus();
@@ -711,19 +624,12 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         return null;
     }
 
-    // Helper static methods để Activity gọi thuận tiện
 
-    /** Phát một bài lẻ (Bảng tin, Khám phá, Chi tiết...): thoát khỏi danh sách phát đang dùng. */
     public static void play(Context context, PostModel post) {
         playQueue = null;
         playQueueName = null;
         startPlay(context, post);
     }
-
-    /**
-     * Phát một danh sách bài hát, bắt đầu từ vị trí {@code startIndex}.
-     * Bài tiếp theo (tự chuyển hoặc bấm Tiếp) chỉ nằm trong danh sách này cho tới khi hết danh sách.
-     */
     public static void playQueue(Context context, String name, List<PostModel> tracks, int startIndex) {
         if (tracks == null || tracks.isEmpty()) return;
         int index = Math.max(0, Math.min(startIndex, tracks.size() - 1));
@@ -733,7 +639,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
     }
 
     private static void startPlay(Context context, PostModel post) {
-        // Báo ngoại tuyến NGAY tại màn hình đang bấm (Toast từ Activity luôn hiển thị)
         boolean offline = isOfflineStream(context, post);
         if (offline) {
             android.widget.Toast.makeText(context, OFFLINE_STREAM_MESSAGE, android.widget.Toast.LENGTH_LONG).show();
@@ -750,7 +655,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         context.startService(intent);
     }
 
-    /** Thông báo "Đang phát: [Tên bài hát]" sau khi bấm phát (trường hợp ngoại tuyến đã được báo khi gọi play). */
     public static void announce(Context context, PostModel post) {
         if (isOfflineStream(context, post)) return;
         android.widget.Toast.makeText(context, startMessage(context, post), android.widget.Toast.LENGTH_SHORT).show();
@@ -774,10 +678,8 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         context.startService(intent);
     }
 
-    /** Bài viết {@code postId} không còn khả dụng (bị xóa / ẩn): nếu đang phát đúng bài đó thì dừng hẳn. */
     public static void stopIfPlaying(Context context, String postId) {
         if (postId == null || !postId.equals(currentPostId) || (!hasTrackLoaded && !isPlaying)) return;
-        // Cập nhật ngay trạng thái dùng chung để giao diện ẩn Mini Player không cần chờ Service
         isPlaying = false;
         hasTrackLoaded = false;
         Intent intent = new Intent(context, MusicService.class);
@@ -786,14 +688,11 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         try {
             context.startService(intent);
         } catch (Exception e) {
-            // App đang chạy nền (không được khởi động Service): đóng thông báo trực tiếp
             NotificationHelper.cancelMusicNotification(context);
         }
     }
 
-    /** Đăng xuất: dừng nhạc và xóa toàn bộ trạng thái phát để tài khoản sau không thấy Mini Player của người trước. */
     public static void stopAndReset(Context context) {
-        // Cập nhật ngay trạng thái dùng chung để giao diện ẩn Mini Player không cần chờ Service
         isPlaying = false;
         hasTrackLoaded = false;
         isBuffering = false;
@@ -828,7 +727,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         context.startService(intent);
     }
 
-    /** Vị trí phát hiện tại (ms) đọc trực tiếp từ MediaPlayer. */
     public static int getCurrentPosition() {
         if (activePlayer != null) {
             try {
@@ -838,7 +736,6 @@ public class MusicService extends Service implements MediaPlayer.OnCompletionLis
         return currentPosition;
     }
 
-    /** Thời lượng thật của bài hát (ms) đọc từ MediaPlayer. */
     public static int getDuration() {
         if (activePlayer != null) {
             try {
